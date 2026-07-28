@@ -12,5 +12,6 @@ namespace CafeteriaApi.DTOs
         public string? ImageUrl { get; set; }
         public int Stock { get; set; }
         public string CategoryName { get; set; } = string.Empty;
+        public int CategoryId { get; set; }
     }
 }
