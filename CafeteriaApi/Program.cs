@@ -87,7 +87,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<AuthService>();
-
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<EmailService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

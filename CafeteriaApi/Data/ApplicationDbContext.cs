@@ -18,7 +18,8 @@ namespace CafeteriaApi.Data
         public DbSet<InventoryMovement> InventoryMovements { get; set; }
         public DbSet<QRPayment> QRPayments { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
-
+        public DbSet<EmailVerification> EmailVerifications { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -74,6 +75,15 @@ namespace CafeteriaApi.Data
                 .WithMany(p => p.OrderDetails)
                 .HasForeignKey(od => od.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<EmailVerification>()
+                .HasIndex(e => e.Code);
+
+            modelBuilder.Entity<PasswordResetToken>()
+                .HasIndex(e => e.Code);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.IsEmailVerified)
+                .HasDefaultValue(false);
         }
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeteriaApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260728055829_InitialCreate")]
+    [Migration("20260728065043_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

@@ -38,5 +38,7 @@ namespace CafeteriaApi.Models
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<InventoryMovement> InventoryMovements { get; set; } = new List<InventoryMovement>();
         public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+        public bool IsEmailVerified { get; set; } = false;
+        public DateTime? EmailVerifiedAt { get; set; }
     }
 }

@@ -12,8 +12,8 @@ namespace CafeteriaApi.Services
         private readonly ApplicationDbContext _context;
         private readonly JwtHelper _jwtHelper;
         private readonly IConfiguration _configuration;
-
-        public AuthService(ApplicationDbContext context, JwtHelper jwtHelper, IConfiguration configuration)
+        private readonly EmailService _emailService;
+        public AuthService(ApplicationDbContext context, JwtHelper jwtHelper, IConfiguration configuration, EmailService emailService)
         {
             _context = context;
             _jwtHelper = jwtHelper;
@@ -122,6 +122,108 @@ namespace CafeteriaApi.Services
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
+        }
+
+
+        public async Task<bool> SendVerificationCodeAsync(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return false;
+
+            if (user.IsEmailVerified)
+                return false;
+
+            var code = GenerateVerificationCode();
+            var expiresAt = DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("VerificationSettings:CodeExpirationMinutes", 10));
+
+            var verification = new EmailVerification
+            {
+                UserId = user.Id,
+                Code = code,
+                ExpiresAt = expiresAt,
+                IsUsed = false
+            };
+
+            _context.EmailVerifications.Add(verification);
+            await _context.SaveChangesAsync();
+
+            return await _emailService.SendVerificationCodeAsync(user.Email, user.FullName, code);
+        }
+
+        public async Task<bool> VerifyEmailAsync(string email, string code)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return false;
+
+            if (user.IsEmailVerified)
+                return false;
+
+            var verification = await _context.EmailVerifications
+                .Where(v => v.UserId == user.Id && v.Code == code && !v.IsUsed && v.ExpiresAt > DateTime.UtcNow)
+                .FirstOrDefaultAsync();
+
+            if (verification == null)
+                return false;
+
+            verification.IsUsed = true;
+            user.IsEmailVerified = true;
+            user.EmailVerifiedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> SendPasswordResetCodeAsync(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return false;
+
+            var code = GenerateVerificationCode();
+            var expiresAt = DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("VerificationSettings:CodeExpirationMinutes", 10));
+
+            var resetToken = new PasswordResetToken
+            {
+                UserId = user.Id,
+                Code = code,
+                ExpiresAt = expiresAt,
+                IsUsed = false
+            };
+
+            _context.PasswordResetTokens.Add(resetToken);
+            await _context.SaveChangesAsync();
+
+            return await _emailService.SendPasswordResetCodeAsync(user.Email, user.FullName, code);
+        }
+
+        public async Task<bool> ResetPasswordAsync(string email, string code, string newPassword)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return false;
+
+            var resetToken = await _context.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && t.Code == code && !t.IsUsed && t.ExpiresAt > DateTime.UtcNow)
+                .FirstOrDefaultAsync();
+
+            if (resetToken == null)
+                return false;
+
+            resetToken.IsUsed = true;
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        private string GenerateVerificationCode()
+        {
+            var random = new Random();
+            var codeLength = _configuration.GetValue<int>("VerificationSettings:CodeLength", 6);
+            return random.Next(0, (int)Math.Pow(10, codeLength) - 1).ToString($"D{codeLength}");
         }
     }
 }
