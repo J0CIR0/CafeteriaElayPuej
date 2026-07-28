@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using CafeteriaApi.Data;
+using CafeteriaApi.Helpers;
+using CafeteriaApi.Services;
+using CafeteriaApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +85,9 @@ builder.Services.AddCors(options =>
         });
 });
 
+builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<AuthService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -96,6 +102,8 @@ app.UseCors("AllowVueFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<SessionValidationMiddleware>();
 
 app.MapControllers();
 
