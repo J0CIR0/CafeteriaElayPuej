@@ -26,6 +26,12 @@
               <router-link class="nav-link" to="/admin/inventory">Inventario</router-link>
             </li>
             <li class="nav-item" v-if="authStore.isAdmin">
+              <router-link class="nav-link" to="/admin/insumos">Insumos y Recetas</router-link>
+            </li>
+            <li class="nav-item" v-if="authStore.isAdmin">
+              <router-link class="nav-link" to="/admin/finanzas">Finanzas y Pérdidas</router-link>
+            </li>
+            <li class="nav-item" v-if="authStore.isAdmin">
               <router-link class="nav-link" to="/admin/users">Usuarios</router-link>
             </li>
             <li class="nav-item" v-if="authStore.isAdmin">

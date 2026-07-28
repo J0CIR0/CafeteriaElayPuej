@@ -20,6 +20,10 @@ namespace CafeteriaApi.Data
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<EmailVerification> EmailVerifications { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<Ingredient> Ingredients { get; set; }
+        public DbSet<ProductIngredient> ProductIngredients { get; set; }
+        public DbSet<IngredientMovement> IngredientMovements { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -54,6 +58,34 @@ namespace CafeteriaApi.Data
                 .Property(q => q.Amount)
                 .HasPrecision(10, 2);
 
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.StockQuantity)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.MinStockQuantity)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.UnitCost)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<ProductIngredient>()
+                .Property(pi => pi.QuantityRequired)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<IngredientMovement>()
+                .Property(im => im.Quantity)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<IngredientMovement>()
+                .Property(im => im.UnitCostAtTime)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<IngredientMovement>()
+                .Property(im => im.TotalCostLoss)
+                .HasPrecision(10, 2);
+
             modelBuilder.Entity<Category>().HasQueryFilter(c => !c.IsDeleted);
             modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
 
@@ -80,6 +112,25 @@ namespace CafeteriaApi.Data
                 .WithMany(p => p.OrderDetails)
                 .HasForeignKey(od => od.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProductIngredient>()
+                .HasOne(pi => pi.Product)
+                .WithMany(p => p.ProductIngredients)
+                .HasForeignKey(pi => pi.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductIngredient>()
+                .HasOne(pi => pi.Ingredient)
+                .WithMany(i => i.ProductIngredients)
+                .HasForeignKey(pi => pi.IngredientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<IngredientMovement>()
+                .HasOne(im => im.Ingredient)
+                .WithMany(i => i.IngredientMovements)
+                .HasForeignKey(im => im.IngredientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<EmailVerification>()
                 .HasIndex(e => e.Code);
 

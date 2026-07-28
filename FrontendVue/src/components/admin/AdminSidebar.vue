@@ -16,6 +16,12 @@
       <router-link to="/admin/inventory" class="list-group-item list-group-item-action" active-class="active">
         Inventario
       </router-link>
+      <router-link to="/admin/insumos" class="list-group-item list-group-item-action" active-class="active">
+        Insumos y Recetas
+      </router-link>
+      <router-link to="/admin/finanzas" class="list-group-item list-group-item-action" active-class="active">
+        Finanzas y Pérdidas
+      </router-link>
       <router-link to="/admin/users" class="list-group-item list-group-item-action" active-class="active">
         Usuarios
       </router-link>

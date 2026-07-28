@@ -56,6 +56,7 @@
                   </span>
                 </td>
                 <td>
+                  <button class="btn btn-outline-info btn-sm me-1" @click="openRecipeModal(product)" title="Configurar Receta e Insumos">Receta</button>
                   <button class="btn btn-primary-outline btn-sm me-1" @click="openEditModal(product)">Editar</button>
                   <button class="btn btn-danger btn-sm" @click="confirmDelete(product)">Eliminar</button>
                 </td>
@@ -67,6 +68,7 @@
     </div>
 
     <ProductForm ref="productForm" :editing="editing" :product="selectedProduct" @saved="onSaved" />
+    <RecipeModal ref="recipeModalRef" />
   </div>
 </template>
 
@@ -75,11 +77,19 @@ import { ref, reactive, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
 import { useAdminStore } from '../../stores/admin'
 import ProductForm from '../../components/admin/ProductForm.vue'
+import RecipeModal from '../../components/admin/RecipeModal.vue'
 
 const adminStore = useAdminStore()
 const productForm = ref(null)
+const recipeModalRef = ref(null)
 const editing = ref(false)
 const selectedProduct = ref(null)
+
+const openRecipeModal = (product) => {
+  if (recipeModalRef.value) {
+    recipeModalRef.value.open(product)
+  }
+}
 
 const alert = reactive({
   show: false,

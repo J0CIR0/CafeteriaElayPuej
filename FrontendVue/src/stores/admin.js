@@ -33,6 +33,16 @@ export const useAdminStore = defineStore('admin', {
     users: [],
     orders: [],
     inventoryMovements: [],
+    ingredients: [],
+    financialReport: {
+      totalRevenue: 0,
+      totalProductionCost: 0,
+      totalNetProfit: 0,
+      totalWasteLossCost: 0,
+      productProfitability: [],
+      expiringIngredients: [],
+      wasteLosses: []
+    },
     statistics: {
       totalProducts: 0,
       totalUsers: 0,
@@ -279,6 +289,75 @@ export const useAdminStore = defineStore('admin', {
         return { success: true, data: response.data }
       } catch (error) {
         return { success: false, message: error.response?.data?.message || 'Error al registrar movimiento' }
+      }
+    },
+    async fetchIngredients() {
+      try {
+        const response = await api.get('/Ingredients')
+        this.ingredients = response.data
+      } catch (error) {
+        console.error('Error al cargar insumos', error)
+      }
+    },
+    async createIngredient(data) {
+      try {
+        const response = await api.post('/Ingredients', data)
+        await this.fetchIngredients()
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al crear insumo' }
+      }
+    },
+    async updateIngredient(id, data) {
+      try {
+        await api.put(`/Ingredients/${id}`, { ...data, id })
+        await this.fetchIngredients()
+        return { success: true }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al actualizar insumo' }
+      }
+    },
+    async deleteIngredient(id) {
+      try {
+        await api.delete(`/Ingredients/${id}`)
+        await this.fetchIngredients()
+        return { success: true }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al eliminar insumo' }
+      }
+    },
+    async registerWaste(id, wasteData) {
+      try {
+        const response = await api.post(`/Ingredients/${id}/waste`, wasteData)
+        await this.fetchIngredients()
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al registrar baja de insumo' }
+      }
+    },
+    async fetchProductRecipe(productId) {
+      try {
+        const response = await api.get(`/Recipes/product/${productId}`)
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al obtener receta' }
+      }
+    },
+    async saveProductRecipe(productId, ingredientsList) {
+      try {
+        await api.put(`/Recipes/product/${productId}`, { ingredients: ingredientsList })
+        return { success: true }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al guardar receta' }
+      }
+    },
+    async fetchFinancialReport() {
+      try {
+        const response = await api.get('/FinancialReports/summary')
+        this.financialReport = response.data
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al cargar reporte financiero' }
       }
     }
   }

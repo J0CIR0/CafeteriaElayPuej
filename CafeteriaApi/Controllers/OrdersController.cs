@@ -167,7 +167,38 @@ namespace CafeteriaApi.Controllers
             foreach (var item in createOrderDto.OrderItems)
             {
                 await RecordInventoryMovement(item.ProductId, item.Quantity, "exit", $"Pedido {orderNumber}", userId);
+
+                var recipeItems = await _context.ProductIngredients
+                    .Include(pi => pi.Ingredient)
+                    .Include(pi => pi.Product)
+                    .Where(pi => pi.ProductId == item.ProductId)
+                    .ToListAsync();
+
+                foreach (var pi in recipeItems)
+                {
+                    if (pi.Ingredient != null && pi.Ingredient.IsActive)
+                    {
+                        decimal qtyDeducted = pi.QuantityRequired * item.Quantity;
+                        pi.Ingredient.StockQuantity -= qtyDeducted;
+                        if (pi.Ingredient.StockQuantity < 0)
+                            pi.Ingredient.StockQuantity = 0;
+                        pi.Ingredient.UpdatedAt = DateTime.UtcNow;
+
+                        _context.IngredientMovements.Add(new IngredientMovement
+                        {
+                            IngredientId = pi.IngredientId,
+                            MovementType = "sale_deduction",
+                            Quantity = qtyDeducted,
+                            UnitCostAtTime = pi.Ingredient.UnitCost,
+                            TotalCostLoss = 0,
+                            Reason = $"Deducción por venta de {item.Quantity}x {pi.Product?.Name ?? "Producto"} (Pedido #{orderNumber})",
+                            UserId = userId,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
             }
+            await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
         }

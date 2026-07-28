@@ -90,6 +90,18 @@ const routes = [
     meta: { requiresAdmin: true }
   },
   {
+    path: '/admin/insumos',
+    name: 'AdminIngredients',
+    component: () => import('../views/admin/AdminIngredientsView.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/finanzas',
+    name: 'AdminFinancial',
+    component: () => import('../views/admin/AdminFinancialView.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
     path: '/admin/reports',
     name: 'AdminReports',
     component: () => import('../views/admin/AdminReportsView.vue'),

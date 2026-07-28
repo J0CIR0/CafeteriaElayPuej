@@ -51,5 +51,6 @@ namespace CafeteriaApi.Models
         
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
         public ICollection<InventoryMovement> InventoryMovements { get; set; } = new List<InventoryMovement>();
+        public ICollection<ProductIngredient> ProductIngredients { get; set; } = new List<ProductIngredient>();
     }
 }

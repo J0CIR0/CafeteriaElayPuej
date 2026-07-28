@@ -62,11 +62,13 @@
           <div class="card-header">Atajos del mostrador</div>
           <div class="card-body d-grid gap-3">
             <router-link to="/admin/products" class="btn btn-primary">Gestionar productos</router-link>
+            <router-link to="/admin/insumos" class="btn btn-primary">Insumos, Recetas y Vencimientos</router-link>
+            <router-link to="/admin/finanzas" class="btn btn-success">Panel Financiero y Pérdidas</router-link>
             <router-link to="/admin/categories" class="btn btn-primary-outline">Gestionar categorías</router-link>
             <router-link to="/admin/users" class="btn btn-primary-outline">Gestionar personal</router-link>
             <router-link to="/admin/orders" class="btn btn-primary-outline">Gestionar pedidos</router-link>
             <div class="tip-box">
-              <strong>Tip camba:</strong> si cambiás un producto acá, el menú público se refresca con el mismo estado.
+              <strong>Tip camba:</strong> al registrar ventas se descuenta automáticamente el stock de insumos según el recetario.
             </div>
           </div>
         </div>
