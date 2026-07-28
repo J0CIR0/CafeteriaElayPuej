@@ -1,47 +1,62 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <router-link class="navbar-brand" to="/">Cafetería Elay Puej</router-link>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <router-link class="nav-link" to="/">Inicio</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/products">Menú</router-link>
+          </li>
+          <li class="nav-item" v-if="authStore.isAuthenticated">
+            <router-link class="nav-link" to="/orders">Mis Pedidos</router-link>
+          </li>
+          <li class="nav-item" v-if="authStore.isAdmin">
+            <router-link class="nav-link" to="/admin">Admin</router-link>
+          </li>
+          <li class="nav-item" v-if="authStore.isWorker && !authStore.isAdmin">
+            <router-link class="nav-link" to="/dashboard">Dashboard</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/cart">
+              Carrito
+              <span v-if="cartStore.totalItems > 0" class="badge bg-danger">{{ cartStore.totalItems }}</span>
+            </router-link>
+          </li>
+          <li class="nav-item" v-if="!authStore.isAuthenticated">
+            <router-link class="nav-link" to="/login">Iniciar Sesión</router-link>
+          </li>
+          <li class="nav-item" v-if="authStore.isAuthenticated">
+            <button class="btn btn-outline-light btn-sm ms-2" @click="logout">Cerrar Sesión</button>
+          </li>
+        </ul>
+      </div>
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  </nav>
+  
+  <router-view />
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
+<script setup>
+import { useAuthStore } from './stores/auth'
+import { useCartStore } from './stores/cart'
+
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+
+const logout = () => {
+  authStore.logout()
+  window.location.href = '/'
 }
+</script>
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+<style>
+.navbar-brand {
+  font-weight: bold;
 }
 </style>
