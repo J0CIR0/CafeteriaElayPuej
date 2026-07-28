@@ -70,15 +70,21 @@ onMounted(async () => {
 const openCreateModal = () => {
   editing.value = false
   selectedCategory.value = null
-  const modal = new bootstrap.Modal(document.getElementById('categoryModal'))
-  modal.show()
+  const el = document.getElementById('categoryModal')
+  if (el) {
+    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    modal.show()
+  }
 }
 
 const openEditModal = (category) => {
   editing.value = true
   selectedCategory.value = { ...category }
-  const modal = new bootstrap.Modal(document.getElementById('categoryModal'))
-  modal.show()
+  const el = document.getElementById('categoryModal')
+  if (el) {
+    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    modal.show()
+  }
 }
 
 const confirmDelete = async (id) => {

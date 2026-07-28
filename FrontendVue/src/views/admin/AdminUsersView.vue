@@ -151,8 +151,11 @@ const openEditModal = (user) => {
   editUser.role = user.role
   editUser.isActive = user.isActive
   editUser.isEmailVerified = user.isEmailVerified || false
-  const modal = new bootstrap.Modal(document.getElementById('userModal'))
-  modal.show()
+  const el = document.getElementById('userModal')
+  if (el) {
+    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    modal.show()
+  }
 }
 
 const openCreateModal = () => {
@@ -165,8 +168,11 @@ const openCreateModal = () => {
   editUser.role = 'customer'
   editUser.isActive = true
   editUser.isEmailVerified = false
-  const modal = new bootstrap.Modal(document.getElementById('userModal'))
-  modal.show()
+  const el = document.getElementById('userModal')
+  if (el) {
+    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    modal.show()
+  }
 }
 
 const saveUser = async () => {

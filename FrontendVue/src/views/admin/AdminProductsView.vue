@@ -82,15 +82,21 @@ onMounted(async () => {
 const openCreateModal = () => {
   editing.value = false
   selectedProduct.value = null
-  const modal = new bootstrap.Modal(document.getElementById('productModal'))
-  modal.show()
+  const el = document.getElementById('productModal')
+  if (el) {
+    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    modal.show()
+  }
 }
 
 const openEditModal = (product) => {
   editing.value = true
   selectedProduct.value = { ...product }
-  const modal = new bootstrap.Modal(document.getElementById('productModal'))
-  modal.show()
+  const el = document.getElementById('productModal')
+  if (el) {
+    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    modal.show()
+  }
 }
 
 const confirmDelete = async (id) => {

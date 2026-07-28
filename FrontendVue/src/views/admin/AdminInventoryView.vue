@@ -175,16 +175,22 @@ onMounted(async () => {
 })
 
 const openMovementModal = () => {
-  const modal = new bootstrap.Modal(document.getElementById('inventoryModal'))
-  modal.show()
+  const el = document.getElementById('inventoryModal')
+  if (el) {
+    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    modal.show()
+  }
 }
 
 const openStockUpdate = (product) => {
   stockProduct.value = product
   stockNewValue.value = product.stock
   stockReason.value = ''
-  const modal = new bootstrap.Modal(document.getElementById('stockModal'))
-  modal.show()
+  const el = document.getElementById('stockModal')
+  if (el) {
+    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    modal.show()
+  }
 }
 
 const submitStockUpdate = async () => {
