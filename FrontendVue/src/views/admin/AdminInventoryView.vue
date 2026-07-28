@@ -1,65 +1,74 @@
 <template>
-  <div class="container-fluid mt-4">
-    <div class="row">
-      <div class="col-md-3 col-lg-2">
-        <AdminSidebar />
+  <div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold" style="color: var(--color-cafe);">
+        <span style="border-left: 4px solid var(--color-cafe); padding-left: 12px;">Control de Inventario</span>
+      </h2>
+      <button class="btn btn-cafe" @click="openMovementModal">
+        Registrar Movimiento
+      </button>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="stat-number">{{ adminStore.products.length }}</div>
+              <div class="stat-label">Total Productos</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="col-md-9 col-lg-10">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2>Control de Inventario</h2>
-          <button class="btn btn-primary" @click="openMovementModal">Registrar Movimiento</button>
-        </div>
-        
-        <div class="row mb-4">
-          <div class="col-md-3">
-            <div class="card bg-light">
-              <div class="card-body text-center">
-                <h5>Total Productos</h5>
-                <h3>{{ adminStore.products.length }}</h3>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card bg-danger text-white">
-              <div class="card-body text-center">
-                <h5>Stock Bajo</h5>
-                <h3>{{ adminStore.products.filter(p => p.stock <= p.minStock).length }}</h3>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card bg-warning">
-              <div class="card-body text-center">
-                <h5>Sin Stock</h5>
-                <h3>{{ adminStore.products.filter(p => p.stock === 0).length }}</h3>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card bg-success text-white">
-              <div class="card-body text-center">
-                <h5>Stock Total</h5>
-                <h3>{{ adminStore.products.reduce((sum, p) => sum + p.stock, 0) }}</h3>
-              </div>
+      <div class="col-md-3">
+        <div class="stat-card red">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="stat-number">{{ adminStore.products.filter(p => p.stock <= p.minStock).length }}</div>
+              <div class="stat-label">Stock Bajo</div>
             </div>
           </div>
         </div>
-        
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card yellow">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="stat-number">{{ adminStore.products.filter(p => p.stock === 0).length }}</div>
+              <div class="stat-label">Sin Stock</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card green">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="stat-number">{{ adminStore.products.reduce((sum, p) => sum + p.stock, 0) }}</div>
+              <div class="stat-label">Stock Total</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-striped table-hover">
+          <table class="table table-cafe">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Producto</th>
                 <th>Stock Actual</th>
-                <th>Stock Mínimo</th>
+                <th>Stock Minimo</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="product in adminStore.products" :key="product.id">
-                <td>{{ product.id }}</td>
+                <td>#{{ product.id }}</td>
                 <td>{{ product.name }}</td>
                 <td>
                   <span :class="product.stock <= product.minStock ? 'text-danger fw-bold' : ''">
@@ -68,22 +77,26 @@
                 </td>
                 <td>{{ product.minStock }}</td>
                 <td>
-                  <span class="badge" :class="product.stock === 0 ? 'bg-danger' : product.stock <= product.minStock ? 'bg-warning' : 'bg-success'">
+                  <span class="badge" :class="product.stock === 0 ? 'badge-rojo' : product.stock <= product.minStock ? 'badge-amarillo' : 'badge-verde'">
                     {{ product.stock === 0 ? 'Agotado' : product.stock <= product.minStock ? 'Bajo' : 'Normal' }}
                   </span>
                 </td>
                 <td>
-                  <button class="btn btn-sm btn-primary" @click="openStockUpdate(product)">Ajustar Stock</button>
+                  <button class="btn btn-sm btn-cafe" @click="openStockUpdate(product)">Ajustar Stock</button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        
-        <div class="mt-4">
-          <h4>Últimos Movimientos</h4>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <h4 class="fw-bold" style="color: var(--color-cafe);">Ultimos Movimientos</h4>
+      <div class="admin-card">
+        <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-sm">
+            <table class="table table-cafe">
               <thead>
                 <tr>
                   <th>Producto</th>
@@ -97,7 +110,7 @@
                 <tr v-for="movement in adminStore.inventoryMovements.slice(0, 20)" :key="movement.id">
                   <td>{{ movement.product?.name || 'N/A' }}</td>
                   <td>
-                    <span class="badge" :class="movement.movementType === 'entry' ? 'bg-success' : movement.movementType === 'exit' ? 'bg-danger' : 'bg-warning'">
+                    <span class="badge" :class="movement.movementType === 'entry' ? 'badge-verde' : movement.movementType === 'exit' ? 'badge-rojo' : 'badge-amarillo'">
                       {{ movement.movementType === 'entry' ? 'Entrada' : movement.movementType === 'exit' ? 'Salida' : 'Ajuste' }}
                     </span>
                   </td>
@@ -109,36 +122,36 @@
             </table>
           </div>
         </div>
-        
-        <InventoryMovementForm :products="adminStore.products" @saved="onSaved" />
-        
-        <div class="modal fade" id="stockModal" tabindex="-1">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Ajustar Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-              <form @submit.prevent="submitStockUpdate">
-                <div class="modal-body">
-                  <p>Producto: <strong>{{ stockProduct?.name }}</strong></p>
-                  <p>Stock actual: <strong>{{ stockProduct?.stock }}</strong></p>
-                  <div class="mb-3">
-                    <label class="form-label">Nuevo Stock</label>
-                    <input type="number" class="form-control" v-model="stockNewValue" required>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label">Motivo</label>
-                    <input type="text" class="form-control" v-model="stockReason" placeholder="Ej: Ajuste manual">
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="submit" class="btn btn-primary" :disabled="loading">{{ loading ? 'Guardando...' : 'Guardar' }}</button>
-                </div>
-              </form>
-            </div>
+      </div>
+    </div>
+
+    <InventoryMovementForm :products="adminStore.products" @saved="onSaved" />
+    
+    <div class="modal fade" id="stockModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Ajustar Stock</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
+          <form @submit.prevent="submitStockUpdate">
+            <div class="modal-body">
+              <p>Producto: <strong>{{ stockProduct?.name }}</strong></p>
+              <p>Stock actual: <strong>{{ stockProduct?.stock }}</strong></p>
+              <div class="mb-3">
+                <label class="form-label">Nuevo Stock</label>
+                <input type="number" class="form-control" v-model="stockNewValue" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Motivo</label>
+                <input type="text" class="form-control" v-model="stockReason" placeholder="Ej: Ajuste manual">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-cafe" :disabled="loading">Guardar</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -148,7 +161,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAdminStore } from '../../stores/admin'
-import AdminSidebar from '../../components/admin/AdminSidebar.vue'
 import InventoryMovementForm from '../../components/admin/InventoryMovementForm.vue'
 
 const adminStore = useAdminStore()

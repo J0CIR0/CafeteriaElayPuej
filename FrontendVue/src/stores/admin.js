@@ -83,7 +83,7 @@ export const useAdminStore = defineStore('admin', {
         const response = await api.get('/Categories')
         this.categories = response.data
       } catch (error) {
-        console.error('Error al cargar categorías', error)
+        console.error('Error al cargar categorias', error)
       }
     },
     async fetchUsers() {
@@ -124,7 +124,7 @@ export const useAdminStore = defineStore('admin', {
           lowStockProducts: response.data.lowStockCount || 0
         }
       } catch (error) {
-        console.error('Error al cargar estadísticas', error)
+        console.error('Error al cargar estadisticas', error)
       }
     },
     async createProduct(productData) {
@@ -170,7 +170,7 @@ export const useAdminStore = defineStore('admin', {
         await this.fetchCategories()
         return { success: true, data: response.data }
       } catch (error) {
-        return { success: false, message: error.response?.data?.message || 'Error al crear categoría' }
+        return { success: false, message: error.response?.data?.message || 'Error al crear categoria' }
       }
     },
     async updateCategory(id, categoryData) {
@@ -179,7 +179,7 @@ export const useAdminStore = defineStore('admin', {
         await this.fetchCategories()
         return { success: true }
       } catch (error) {
-        return { success: false, message: error.response?.data?.message || 'Error al actualizar categoría' }
+        return { success: false, message: error.response?.data?.message || 'Error al actualizar categoria' }
       }
     },
     async deleteCategory(id) {
@@ -188,7 +188,7 @@ export const useAdminStore = defineStore('admin', {
         await this.fetchCategories()
         return { success: true }
       } catch (error) {
-        return { success: false, message: error.response?.data?.message || 'Error al eliminar categoría' }
+        return { success: false, message: error.response?.data?.message || 'Error al eliminar categoria' }
       }
     },
     async updateOrderPaymentStatus(orderId, status) {
@@ -225,6 +225,15 @@ export const useAdminStore = defineStore('admin', {
         return { success: true }
       } catch (error) {
         return { success: false, message: error.response?.data?.message || 'Error al eliminar usuario' }
+      }
+    },
+    async updateUser(id, userData) {
+      try {
+        await api.put(`/Users/${id}`, userData)
+        await this.fetchUsers()
+        return { success: true }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al actualizar usuario' }
       }
     },
     async createMovement(movementData) {

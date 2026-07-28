@@ -1,32 +1,33 @@
 <template>
-  <div class="container-fluid mt-4">
-    <div class="row">
-      <div class="col-md-3 col-lg-2">
-        <AdminSidebar />
+  <div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold" style="color: var(--color-cafe);">
+        <span style="border-left: 4px solid var(--color-cafe); padding-left: 12px;">Gestion de Pedidos</span>
+      </h2>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-3">
+        <button class="btn btn-outline-primary w-100" @click="filter = 'all'">Todos ({{ adminStore.orders.length }})</button>
       </div>
-      <div class="col-md-9 col-lg-10">
-        <h2 class="mb-4">Gestión de Pedidos</h2>
-        
-        <div class="row mb-3">
-          <div class="col-md-3">
-            <button class="btn btn-outline-primary w-100" @click="filter = 'all'">Todos ({{ adminStore.orders.length }})</button>
-          </div>
-          <div class="col-md-3">
-            <button class="btn btn-outline-warning w-100" @click="filter = 'pending'">Pendientes ({{ pendingOrders.length }})</button>
-          </div>
-          <div class="col-md-3">
-            <button class="btn btn-outline-success w-100" @click="filter = 'paid'">Pagados ({{ paidOrders.length }})</button>
-          </div>
-          <div class="col-md-3">
-            <button class="btn btn-outline-info w-100" @click="filter = 'delivered'">Entregados ({{ deliveredOrders.length }})</button>
-          </div>
-        </div>
-        
+      <div class="col-md-3">
+        <button class="btn btn-outline-warning w-100" @click="filter = 'pending'">Pendientes ({{ pendingOrders.length }})</button>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-outline-success w-100" @click="filter = 'paid'">Pagados ({{ paidOrders.length }})</button>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-outline-info w-100" @click="filter = 'delivered'">Entregados ({{ deliveredOrders.length }})</button>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-striped table-hover">
+          <table class="table table-cafe">
             <thead>
               <tr>
-                <th># Pedido</th>
+                <th>Pedido</th>
                 <th>Cliente</th>
                 <th>Total</th>
                 <th>Pago</th>
@@ -37,11 +38,11 @@
             </thead>
             <tbody>
               <tr v-for="order in filteredOrders" :key="order.id">
-                <td>{{ order.orderNumber }}</td>
+                <td>#{{ order.orderNumber }}</td>
                 <td>{{ order.user?.fullName || 'N/A' }}</td>
-                <td>${{ order.total.toFixed(2) }}</td>
+                <td class="text-success fw-bold">${{ order.total.toFixed(2) }}</td>
                 <td>
-                  <span class="badge" :class="order.paymentStatus === 'paid' ? 'bg-success' : 'bg-warning'">
+                  <span class="badge" :class="order.paymentStatus === 'paid' ? 'badge-verde' : 'badge-amarillo'">
                     {{ order.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente' }}
                   </span>
                 </td>
@@ -52,7 +53,7 @@
                 </td>
                 <td>{{ new Date(order.createdAt).toLocaleDateString() }}</td>
                 <td>
-                  <button v-if="order.paymentStatus === 'pending'" class="btn btn-sm btn-success me-1" @click="markAsPaid(order.id)">
+                  <button v-if="order.paymentStatus === 'pending'" class="btn btn-sm btn-verde me-1" @click="markAsPaid(order.id)">
                     Pagar
                   </button>
                   <button v-if="order.paymentStatus === 'paid' && order.orderStatus === 'preparing'" class="btn btn-sm btn-primary me-1" @click="updateStatus(order.id, 'ready')">
@@ -74,7 +75,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAdminStore } from '../../stores/admin'
-import AdminSidebar from '../../components/admin/AdminSidebar.vue'
 
 const adminStore = useAdminStore()
 const filter = ref('all')
@@ -107,7 +107,7 @@ const getOrderStatusClass = (status) => {
 const getOrderStatusText = (status) => {
   const texts = {
     pending: 'Pendiente',
-    preparing: 'En Preparación',
+    preparing: 'En Preparacion',
     ready: 'Listo para Recoger',
     delivered: 'Entregado'
   }

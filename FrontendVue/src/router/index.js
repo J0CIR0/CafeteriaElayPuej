@@ -18,6 +18,16 @@ const routes = [
     component: () => import('../views/RegisterView.vue')
   },
   {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../views/VerifyEmailView.vue')
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('../views/ForgotPasswordView.vue')
+  },
+  {
     path: '/products',
     name: 'Products',
     component: () => import('../views/ProductsView.vue')
@@ -38,26 +48,10 @@ const routes = [
     component: () => import('../views/OrdersView.vue')
   },
   {
-    path: '/admin',
-    name: 'Admin',
-    component: () => import('../views/AdminView.vue'),
-    meta: { requiresAdmin: true }
-  },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('../views/DashboardView.vue'),
-    meta: { requiresWorker: true }
-  },
-  {
-    path: '/verify-email',
-    name: 'VerifyEmail',
-    component: () => import('../views/VerifyEmailView.vue')
-  },
-  {
-    path: '/forgot-password',
-    name: 'ForgotPassword',
-    component: () => import('../views/ForgotPasswordView.vue')
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/ProfileView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/admin',
@@ -94,6 +88,12 @@ const routes = [
     name: 'AdminUsers',
     component: () => import('../views/admin/AdminUsersView.vue'),
     meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/reports',
+    name: 'AdminReports',
+    component: () => import('../views/admin/AdminReportsView.vue'),
+    meta: { requiresAdmin: true }
   }
 ]
 
@@ -107,8 +107,6 @@ router.beforeEach(async (to, from, next) => {
   
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
     next('/')
-  } else if (to.meta.requiresWorker && !authStore.isWorker) {
-    next('/')
   } else if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
   } else if (to.path !== '/verify-email' && 
@@ -117,7 +115,7 @@ router.beforeEach(async (to, from, next) => {
              to.path !== '/forgot-password' &&
              authStore.isAuthenticated && 
              !authStore.isEmailVerified) {
-    next({ path: '/verify-email', query: { email: authStore.user?.email || '' } })
+    next('/verify-email')
   } else {
     next()
   }

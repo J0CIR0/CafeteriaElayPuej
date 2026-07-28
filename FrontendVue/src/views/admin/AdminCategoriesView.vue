@@ -1,44 +1,61 @@
 <template>
-  <div class="container-fluid mt-4">
-    <div class="row">
-      <div class="col-md-3 col-lg-2">
-        <AdminSidebar />
-      </div>
-      <div class="col-md-9 col-lg-10">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2>Gestión de Categorías</h2>
-          <button class="btn btn-primary" @click="openCreateModal">Nueva Categoría</button>
-        </div>
-        
-        <div class="row">
-          <div v-for="category in adminStore.categories" :key="category.id" class="col-md-4 mb-3">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">
-                  {{ category.name }}
-                  <span class="badge" :class="category.isActive ? 'bg-success' : 'bg-danger'">
-                    {{ category.isActive ? 'Activa' : 'Inactiva' }}
-                  </span>
-                </h5>
-                <p class="card-text text-muted">{{ category.description || 'Sin descripción' }}</p>
-                <p class="card-text"><small>Icono: {{ category.icon || 'N/A' }}</small></p>
-                <button class="btn btn-sm btn-warning me-1" @click="openEditModal(category)">Editar</button>
-                <button class="btn btn-sm btn-danger" @click="confirmDelete(category.id)">Eliminar</button>
-              </div>
-            </div>
+  <div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="section-title" style="margin-bottom:0;">Gestion de Categorias</h5>
+      <button class="btn btn-primary" @click="openCreateModal">Nueva Categoria</button>
+    </div>
+
+    <div class="admin-card">
+      <div class="card-body p-0">
+        <div v-if="adminStore.loading" class="text-center py-4">
+          <div class="spinner-border" style="color:var(--color-verde-medio);width:2rem;height:2rem;" role="status">
+            <span class="visually-hidden">Cargando...</span>
           </div>
         </div>
-        
-        <CategoryForm ref="categoryForm" :editing="editing" :category="selectedCategory" @saved="onSaved" />
+        <div v-else-if="adminStore.categories.length === 0" class="text-center py-4 text-muted">
+          No hay categorias registradas
+        </div>
+        <div v-else class="table-responsive">
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th>Icono</th>
+                <th>Estado</th>
+                <th style="width:160px;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="category in adminStore.categories" :key="category.id">
+                <td>#{{ category.id }}</td>
+                <td style="font-weight:500;">{{ category.name }}</td>
+                <td>{{ category.description || '-' }}</td>
+                <td>{{ category.icon || '-' }}</td>
+                <td>
+                  <span class="badge-modern" :class="category.isActive ? 'badge-verde' : 'badge-rojo'">
+                    {{ category.isActive ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-primary-outline btn-sm me-1" @click="openEditModal(category)">Editar</button>
+                  <button class="btn btn-danger btn-sm" @click="confirmDelete(category.id)">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
+
+    <CategoryForm ref="categoryForm" :editing="editing" :category="selectedCategory" @saved="onSaved" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAdminStore } from '../../stores/admin'
-import AdminSidebar from '../../components/admin/AdminSidebar.vue'
 import CategoryForm from '../../components/admin/CategoryForm.vue'
 
 const adminStore = useAdminStore()
@@ -65,7 +82,7 @@ const openEditModal = (category) => {
 }
 
 const confirmDelete = async (id) => {
-  if (confirm('¿Estás seguro de eliminar esta categoría?')) {
+  if (confirm('Estas seguro de eliminar esta categoria?')) {
     const result = await adminStore.deleteCategory(id)
     if (result.success) {
       await adminStore.fetchCategories()

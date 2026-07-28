@@ -1,5 +1,5 @@
 <template>
-  <div class="modal fade" id="productModal" tabindex="-1">
+  <div class="modal fade modal-modern" id="productModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -11,74 +11,74 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Nombre</label>
-                  <input type="text" class="form-control" v-model="form.name" required>
+                  <label class="form-label" style="font-size:0.85rem;font-weight:500;">Nombre</label>
+                  <input type="text" class="form-modern" v-model="form.name" required>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Categoría</label>
-                  <select class="form-select" v-model="form.categoryId" required>
-                    <option value="">Seleccionar categoría</option>
+                  <label class="form-label" style="font-size:0.85rem;font-weight:500;">Categoria</label>
+                  <select class="form-modern-select" v-model="form.categoryId" required>
+                    <option value="">Seleccionar</option>
                     <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
                   </select>
                 </div>
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label">Descripción</label>
-              <textarea class="form-control" v-model="form.description" rows="2"></textarea>
+              <label class="form-label" style="font-size:0.85rem;font-weight:500;">Descripcion</label>
+              <textarea class="form-modern" v-model="form.description" rows="2"></textarea>
             </div>
             <div class="row">
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label">Precio</label>
-                  <input type="number" step="0.01" class="form-control" v-model="form.price" required>
+                  <label class="form-label" style="font-size:0.85rem;font-weight:500;">Precio</label>
+                  <input type="number" step="0.01" class="form-modern" v-model="form.price" required>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label">Stock</label>
-                  <input type="number" class="form-control" v-model="form.stock" required>
+                  <label class="form-label" style="font-size:0.85rem;font-weight:500;">Stock</label>
+                  <input type="number" class="form-modern" v-model="form.stock" required>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label">Stock Mínimo</label>
-                  <input type="number" class="form-control" v-model="form.minStock">
+                  <label class="form-label" style="font-size:0.85rem;font-weight:500;">Stock Minimo</label>
+                  <input type="number" class="form-modern" v-model="form.minStock">
                 </div>
               </div>
             </div>
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Tiempo de Preparación</label>
-                  <input type="text" class="form-control" v-model="form.preparationTime" placeholder="Ej: 25 seg">
+                  <label class="form-label" style="font-size:0.85rem;font-weight:500;">Tiempo Preparacion</label>
+                  <input type="text" class="form-modern" v-model="form.preparationTime" placeholder="25 seg">
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Origen</label>
-                  <input type="text" class="form-control" v-model="form.origin" placeholder="Ej: Huila, Colombia">
+                  <label class="form-label" style="font-size:0.85rem;font-weight:500;">Origen</label>
+                  <input type="text" class="form-modern" v-model="form.origin" placeholder="Huila, Colombia">
                 </div>
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label">Notas de Sabor</label>
-              <input type="text" class="form-control" v-model="form.flavorNotes" placeholder="Ej: Panela y cereza roja">
+              <label class="form-label" style="font-size:0.85rem;font-weight:500;">Notas de Sabor</label>
+              <input type="text" class="form-modern" v-model="form.flavorNotes" placeholder="Panela y cereza roja">
             </div>
             <div class="mb-3">
-              <label class="form-label">URL de Imagen</label>
-              <input type="text" class="form-control" v-model="form.imageUrl" placeholder="https://ejemplo.com/imagen.jpg">
+              <label class="form-label" style="font-size:0.85rem;font-weight:500;">URL Imagen</label>
+              <input type="text" class="form-modern" v-model="form.imageUrl" placeholder="https://ejemplo.com/imagen.jpg">
             </div>
             <div class="form-check">
               <input type="checkbox" class="form-check-input" id="isAvailable" v-model="form.isAvailable">
-              <label class="form-check-label" for="isAvailable">Disponible</label>
+              <label class="form-check-label" for="isAvailable" style="font-size:0.85rem;">Disponible</label>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary" :disabled="loading">{{ loading ? 'Guardando...' : 'Guardar' }}</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-size:0.85rem;">Cancelar</button>
+            <button type="submit" class="btn btn-primary" :disabled="loading" style="font-size:0.85rem;">{{ loading ? 'Guardando...' : 'Guardar' }}</button>
           </div>
         </form>
       </div>
@@ -128,7 +128,7 @@ watch(() => props.product, (newVal) => {
 const submitForm = async () => {
   loading.value = true
   let result
-  if (props.editing) {
+  if (props.editing && props.product) {
     result = await adminStore.updateProduct(props.product.id, form.value)
   } else {
     result = await adminStore.createProduct(form.value)
@@ -141,4 +141,6 @@ const submitForm = async () => {
     emit('saved')
   }
 }
+
+const categories = adminStore.categories
 </script>
