@@ -58,6 +58,42 @@ const routes = [
     path: '/forgot-password',
     name: 'ForgotPassword',
     component: () => import('../views/ForgotPasswordView.vue')
+  },
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: () => import('../views/admin/AdminDashboardView.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/products',
+    name: 'AdminProducts',
+    component: () => import('../views/admin/AdminProductsView.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/categories',
+    name: 'AdminCategories',
+    component: () => import('../views/admin/AdminCategoriesView.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/orders',
+    name: 'AdminOrders',
+    component: () => import('../views/admin/AdminOrdersView.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/inventory',
+    name: 'AdminInventory',
+    component: () => import('../views/admin/AdminInventoryView.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: () => import('../views/admin/AdminUsersView.vue'),
+    meta: { requiresAdmin: true }
   }
 ]
 
