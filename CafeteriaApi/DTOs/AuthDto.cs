@@ -41,6 +41,7 @@ namespace CafeteriaApi.DTOs
         public string FullName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public int UserId { get; set; }
+        public bool IsEmailVerified { get; set; }
         public DateTime ExpiresAt { get; set; }
     }
 

@@ -4,8 +4,9 @@
       <div class="col-md-6 col-lg-4">
         <div class="card shadow">
           <div class="card-body">
-            <h2 class="text-center mb-4">Cafetería Elay Puej</h2>
+            <h2 class="text-center mb-3">Cafetería Elay Puej</h2>
             <h5 class="text-center text-muted mb-4">Registro de Usuario</h5>
+            
             <form @submit.prevent="handleRegister">
               <div class="mb-3">
                 <label class="form-label">Nombre Completo</label>
@@ -67,7 +68,7 @@ const handleRegister = async () => {
   loading.value = false
   
   if (result.success) {
-    router.push('/login')
+    router.push({ path: '/verify-email', query: { email: email.value } })
   } else {
     error.value = result.message
   }

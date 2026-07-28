@@ -48,6 +48,16 @@ const routes = [
     name: 'Dashboard',
     component: () => import('../views/DashboardView.vue'),
     meta: { requiresWorker: true }
+  },
+  {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../views/VerifyEmailView.vue')
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('../views/ForgotPasswordView.vue')
   }
 ]
 
@@ -56,13 +66,22 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
     next('/')
   } else if (to.meta.requiresWorker && !authStore.isWorker) {
     next('/')
+  } else if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next('/login')
+  } else if (to.path !== '/verify-email' && 
+             to.path !== '/login' && 
+             to.path !== '/register' && 
+             to.path !== '/forgot-password' &&
+             authStore.isAuthenticated && 
+             !authStore.isEmailVerified) {
+    next({ path: '/verify-email', query: { email: authStore.user?.email || '' } })
   } else {
     next()
   }

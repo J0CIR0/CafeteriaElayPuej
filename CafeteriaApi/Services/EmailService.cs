@@ -45,7 +45,7 @@ namespace CafeteriaApi.Services
                     <body>
                         <div class='container'>
                             <div class='header'>
-                                <h2>☕ Cafetería Elay Puej</h2>
+                                <h2>Cafetería Elay Puej</h2>
                             </div>
                             <div style='padding: 20px;'>
                                 <h3>¡Hola {fullName}!</h3>
@@ -92,7 +92,7 @@ namespace CafeteriaApi.Services
                     <body>
                         <div class='container'>
                             <div class='header'>
-                                <h2>☕ Cafetería Elay Puej</h2>
+                                <h2>Cafetería Elay Puej</h2>
                             </div>
                             <div style='padding: 20px;'>
                                 <h3>¡Hola {fullName}!</h3>

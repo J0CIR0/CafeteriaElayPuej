@@ -4,8 +4,13 @@
       <div class="col-md-6 col-lg-4">
         <div class="card shadow">
           <div class="card-body">
-            <h2 class="text-center mb-4">Cafetería Elay Puej</h2>
+            <h2 class="text-center mb-3">Cafetería Elay Puej</h2>
             <h5 class="text-center text-muted mb-4">Iniciar Sesión</h5>
+            
+            <div v-if="needsVerification" class="alert alert-warning">
+              <p>Tu correo no está verificado. <router-link to="/verify-email">Verificar ahora</router-link></p>
+            </div>
+            
             <form @submit.prevent="handleLogin">
               <div class="mb-3">
                 <label class="form-label">Email</label>
@@ -20,9 +25,10 @@
                 {{ loading ? 'Cargando...' : 'Iniciar Sesión' }}
               </button>
             </form>
-            <p class="text-center mt-3">
-              ¿No tienes cuenta? <router-link to="/register">Regístrate</router-link>
-            </p>
+            <div class="text-center mt-3">
+              <router-link to="/forgot-password" class="d-block">¿Olvidaste tu contraseña?</router-link>
+              <router-link to="/register">¿No tienes cuenta? Regístrate</router-link>
+            </div>
           </div>
         </div>
       </div>
@@ -41,10 +47,13 @@ const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
+const needsVerification = ref(false)
 
 const handleLogin = async () => {
   loading.value = true
   error.value = ''
+  needsVerification.value = false
+  
   const result = await authStore.login(email.value, password.value)
   loading.value = false
   
@@ -52,6 +61,7 @@ const handleLogin = async () => {
     router.push('/')
   } else {
     error.value = result.message
+    needsVerification.value = result.message.toLowerCase().includes('verificar')
   }
 }
 </script>

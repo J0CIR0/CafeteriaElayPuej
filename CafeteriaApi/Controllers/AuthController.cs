@@ -45,7 +45,7 @@ namespace CafeteriaApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error en login");
-                return Unauthorized(new { message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -92,7 +92,8 @@ namespace CafeteriaApi.Controllers
                     userId = user?.Id,
                     email = user?.Email,
                     fullName = user?.FullName,
-                    role = user?.Role
+                    role = user?.Role,
+                    isEmailVerified = user?.IsEmailVerified ?? false
                 });
             }
             catch (Exception ex)

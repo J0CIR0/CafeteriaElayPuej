@@ -18,6 +18,7 @@ namespace CafeteriaApi.Services
             _context = context;
             _jwtHelper = jwtHelper;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         public async Task<AuthResponseDto> Register(RegisterDto registerDto)
@@ -43,17 +44,19 @@ namespace CafeteriaApi.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var token = _jwtHelper.GenerateToken(user);
-            var refreshToken = GenerateRefreshToken();
+            var verificationEmailSent = await SendVerificationCodeAsync(user.Email);
+            if (!verificationEmailSent)
+                throw new Exception("No se pudo enviar el código de verificación. Verifica la configuración de correo e inténtalo nuevamente.");
 
             return new AuthResponseDto
             {
-                Token = token,
-                RefreshToken = refreshToken,
+                Token = string.Empty,
+                RefreshToken = string.Empty,
                 Email = user.Email,
                 FullName = user.FullName,
                 Role = user.Role,
                 UserId = user.Id,
+                IsEmailVerified = user.IsEmailVerified,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("JwtSettings:ExpirationMinutes", 120))
             };
         }
@@ -66,6 +69,9 @@ namespace CafeteriaApi.Services
 
             if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 throw new Exception("Credenciales inválidas");
+
+            if (!user.IsEmailVerified)
+                throw new Exception("Debes verificar tu correo electrónico antes de iniciar sesión");
 
             user.ConcurrencyStamp = Guid.NewGuid().ToString();
             user.UpdatedAt = DateTime.UtcNow;
@@ -82,6 +88,7 @@ namespace CafeteriaApi.Services
                 FullName = user.FullName,
                 Role = user.Role,
                 UserId = user.Id,
+                IsEmailVerified = user.IsEmailVerified,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("JwtSettings:ExpirationMinutes", 120))
             };
         }
@@ -90,6 +97,9 @@ namespace CafeteriaApi.Services
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null || !user.IsActive)
+                return false;
+
+            if (!user.IsEmailVerified)
                 return false;
 
             return user.ConcurrencyStamp == tokenConcurrencyStamp;
