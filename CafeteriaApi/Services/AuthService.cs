@@ -38,7 +38,8 @@ namespace CafeteriaApi.Services
                 Phone = registerDto.Phone,
                 Role = role,
                 ConcurrencyStamp = Guid.NewGuid().ToString(),
-                IsActive = true
+                IsActive = true,
+                IsDeleted = false
             };
 
             _context.Users.Add(user);
@@ -64,7 +65,7 @@ namespace CafeteriaApi.Services
         public async Task<AuthResponseDto> Login(LoginDto loginDto)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
-            if (user == null || !user.IsActive)
+            if (user == null || !user.IsActive || user.IsDeleted)
                 throw new Exception("Credenciales inválidas");
 
             if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
@@ -96,7 +97,7 @@ namespace CafeteriaApi.Services
         public async Task<bool> ValidateSession(int userId, string tokenConcurrencyStamp)
         {
             var user = await _context.Users.FindAsync(userId);
-            if (user == null || !user.IsActive)
+            if (user == null || !user.IsActive || user.IsDeleted)
                 return false;
 
             if (!user.IsEmailVerified)
@@ -113,7 +114,7 @@ namespace CafeteriaApi.Services
         public async Task<bool> ChangePassword(int userId, ChangePasswordDto changePasswordDto)
         {
             var user = await _context.Users.FindAsync(userId);
-            if (user == null)
+            if (user == null || user.IsDeleted)
                 return false;
 
             if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, user.PasswordHash))
@@ -138,7 +139,7 @@ namespace CafeteriaApi.Services
         public async Task<bool> SendVerificationCodeAsync(string email)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
+            if (user == null || user.IsDeleted)
                 return false;
 
             if (user.IsEmailVerified)
@@ -164,7 +165,7 @@ namespace CafeteriaApi.Services
         public async Task<bool> VerifyEmailAsync(string email, string code)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
+            if (user == null || user.IsDeleted)
                 return false;
 
             if (user.IsEmailVerified)
@@ -188,7 +189,7 @@ namespace CafeteriaApi.Services
         public async Task<bool> SendPasswordResetCodeAsync(string email)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
+            if (user == null || user.IsDeleted)
                 return false;
 
             var code = GenerateVerificationCode();

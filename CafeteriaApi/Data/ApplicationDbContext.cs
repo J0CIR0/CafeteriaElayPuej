@@ -28,6 +28,8 @@ namespace CafeteriaApi.Data
                 .Property(p => p.Price)
                 .HasPrecision(10, 2);
 
+            modelBuilder.Entity<Product>().HasQueryFilter(p => !p.IsDeleted);
+
             modelBuilder.Entity<Order>()
                 .Property(o => o.Subtotal)
                 .HasPrecision(10, 2);
@@ -51,6 +53,9 @@ namespace CafeteriaApi.Data
             modelBuilder.Entity<QRPayment>()
                 .Property(q => q.Amount)
                 .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Category>().HasQueryFilter(c => !c.IsDeleted);
+            modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.User)

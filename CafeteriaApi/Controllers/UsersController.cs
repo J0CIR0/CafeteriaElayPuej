@@ -115,9 +115,9 @@ namespace CafeteriaApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, User user)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
-            if (id != user.Id)
+            if (id != dto.Id)
                 return BadRequest(new { message = "El ID del usuario no coincide" });
 
             var existingUser = await _context.Users.FindAsync(id);
@@ -125,18 +125,30 @@ namespace CafeteriaApi.Controllers
                 return NotFound(new { message = "Usuario no encontrado" });
 
             var duplicateEmail = await _context.Users
-                .AnyAsync(u => u.Email == user.Email && u.Id != id);
+                .AnyAsync(u => u.Email == dto.Email && u.Id != id);
 
             if (duplicateEmail)
                 return BadRequest(new { message = "El email ya está registrado por otro usuario" });
 
-            existingUser.Email = user.Email;
-            existingUser.FullName = user.FullName;
-            existingUser.Phone = user.Phone;
-            existingUser.Role = user.Role;
-            existingUser.IsActive = user.IsActive;
-            existingUser.IsEmailVerified = user.IsEmailVerified;
-            existingUser.EmailVerifiedAt = user.IsEmailVerified ? (existingUser.EmailVerifiedAt ?? DateTime.UtcNow) : null;
+            var normalizedRole = (dto.Role ?? "").ToLower();
+            if (normalizedRole == "mesero")
+                normalizedRole = "worker";
+            else if (normalizedRole == "cliente")
+                normalizedRole = "customer";
+            else if (normalizedRole != "admin" && normalizedRole != "worker" && normalizedRole != "customer")
+                normalizedRole = "customer";
+
+            existingUser.Email = dto.Email;
+            existingUser.FullName = dto.FullName;
+            existingUser.Phone = dto.Phone;
+            existingUser.Role = normalizedRole;
+            existingUser.IsActive = dto.IsActive;
+            existingUser.IsEmailVerified = dto.IsEmailVerified;
+            existingUser.EmailVerifiedAt = dto.IsEmailVerified ? (existingUser.EmailVerifiedAt ?? DateTime.UtcNow) : null;
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            }
             existingUser.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -188,9 +200,9 @@ namespace CafeteriaApi.Controllers
                 return BadRequest(new { message = "No se puede eliminar un usuario con pedidos" });
 
             user.IsActive = false;
+            user.IsDeleted = true;
             user.ConcurrencyStamp = Guid.NewGuid().ToString();
             user.UpdatedAt = DateTime.UtcNow;
-
             await _context.SaveChangesAsync();
 
             return NoContent();

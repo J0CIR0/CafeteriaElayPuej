@@ -8,6 +8,10 @@
         </div>
         <form @submit.prevent="submitForm">
           <div class="modal-body">
+            <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+              {{ errorMessage }}
+              <button type="button" class="btn-close" @click="errorMessage = ''"></button>
+            </div>
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
@@ -88,6 +92,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { Modal } from 'bootstrap'
 import { useAdminStore } from '../../stores/admin'
 
 const props = defineProps({
@@ -105,7 +110,9 @@ const emit = defineEmits(['saved'])
 
 const adminStore = useAdminStore()
 const loading = ref(false)
-const form = ref({
+const errorMessage = ref('')
+
+const defaultForm = () => ({
   name: '',
   description: '',
   price: 0,
@@ -119,14 +126,20 @@ const form = ref({
   isAvailable: true
 })
 
+const form = ref(defaultForm())
+
 watch(() => props.product, (newVal) => {
+  errorMessage.value = ''
   if (newVal) {
     form.value = { ...newVal }
+  } else {
+    form.value = defaultForm()
   }
 }, { immediate: true })
 
 const submitForm = async () => {
   loading.value = true
+  errorMessage.value = ''
   let result
   if (props.editing && props.product) {
     result = await adminStore.updateProduct(props.product.id, form.value)
@@ -135,10 +148,20 @@ const submitForm = async () => {
   }
   loading.value = false
   if (result.success) {
-    const modal = document.getElementById('productModal')
-    const bsModal = bootstrap.Modal.getInstance(modal)
-    if (bsModal) bsModal.hide()
-    emit('saved')
+    const modalEl = document.getElementById('productModal')
+    if (modalEl) {
+      const bsModal = Modal.getOrCreateInstance(modalEl)
+      bsModal.hide()
+    }
+    setTimeout(() => {
+      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove())
+      document.body.classList.remove('modal-open')
+      document.body.style.removeProperty('overflow')
+      document.body.style.removeProperty('padding-right')
+    }, 300)
+    emit('saved', { isEdit: props.editing, name: form.value.name })
+  } else {
+    errorMessage.value = result.message || 'Error al guardar producto'
   }
 }
 

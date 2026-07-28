@@ -5,6 +5,12 @@
       <button class="btn btn-primary" @click="openCreateModal">Nuevo Usuario</button>
     </div>
 
+    <!-- Alert Notification Banner -->
+    <div v-if="alert.show" :class="['alert', alert.type === 'success' ? 'alert-success' : 'alert-danger', 'alert-dismissible fade show mb-4']" role="alert">
+      <strong>{{ alert.type === 'success' ? '¡Éxito!' : '¡Error!' }}</strong> {{ alert.message }}
+      <button type="button" class="btn-close" @click="alert.show = false"></button>
+    </div>
+
     <div class="admin-card">
       <div class="card-body p-0">
         <div v-if="adminStore.loading" class="text-center py-4">
@@ -52,10 +58,10 @@
                 </td>
                 <td>
                   <button class="btn btn-primary-outline btn-sm me-1" @click="openEditModal(user)">Editar</button>
-                  <button v-if="user.role !== 'admin'" class="btn btn-warning btn-sm me-1" @click="toggleUser(user.id, user.isActive)">
+                  <button v-if="user.role !== 'admin'" class="btn btn-warning btn-sm me-1" @click="toggleUser(user)">
                     {{ user.isActive ? 'Desactivar' : 'Activar' }}
                   </button>
-                  <button v-if="user.role !== 'admin'" class="btn btn-danger btn-sm" @click="confirmDelete(user.id)">
+                  <button v-if="user.role !== 'admin'" class="btn btn-danger btn-sm" @click="confirmDelete(user)">
                     Eliminar
                   </button>
                 </td>
@@ -75,6 +81,10 @@
           </div>
           <form @submit.prevent="saveUser">
             <div class="modal-body">
+              <div v-if="modalError" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                {{ modalError }}
+                <button type="button" class="btn-close" @click="modalError = ''"></button>
+              </div>
               <div class="mb-3">
                 <label class="form-label" style="font-size:0.85rem;font-weight:500;">Nombre Completo</label>
                 <input type="text" class="form-modern" v-model="editUser.fullName" required>
@@ -121,11 +131,29 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { Modal } from 'bootstrap'
 import { useAdminStore } from '../../stores/admin'
 
 const adminStore = useAdminStore()
 const loading = ref(false)
 const editing = ref(false)
+const modalError = ref('')
+
+const alert = reactive({
+  show: false,
+  message: '',
+  type: 'success'
+})
+
+const showAlert = (message, type = 'success') => {
+  alert.message = message
+  alert.type = type
+  alert.show = true
+  setTimeout(() => {
+    alert.show = false
+  }, 4000)
+}
+
 const editUser = reactive({
   id: null,
   fullName: '',
@@ -143,6 +171,7 @@ onMounted(async () => {
 
 const openEditModal = (user) => {
   editing.value = true
+  modalError.value = ''
   editUser.id = user.id
   editUser.fullName = user.fullName
   editUser.email = user.email
@@ -153,13 +182,14 @@ const openEditModal = (user) => {
   editUser.isEmailVerified = user.isEmailVerified || false
   const el = document.getElementById('userModal')
   if (el) {
-    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    const modal = Modal.getOrCreateInstance(el)
     modal.show()
   }
 }
 
 const openCreateModal = () => {
   editing.value = false
+  modalError.value = ''
   editUser.id = null
   editUser.fullName = ''
   editUser.email = ''
@@ -170,13 +200,14 @@ const openCreateModal = () => {
   editUser.isEmailVerified = false
   const el = document.getElementById('userModal')
   if (el) {
-    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    const modal = Modal.getOrCreateInstance(el)
     modal.show()
   }
 }
 
 const saveUser = async () => {
   loading.value = true
+  modalError.value = ''
   try {
     const payload = {
       fullName: editUser.fullName,
@@ -188,37 +219,59 @@ const saveUser = async () => {
       isEmailVerified: editUser.isEmailVerified
     }
 
+    let result
     if (editing.value) {
-      await adminStore.updateUser(editUser.id, payload)
+      result = await adminStore.updateUser(editUser.id, payload)
     } else {
-      await adminStore.createUser(payload)
+      result = await adminStore.createUser(payload)
     }
 
-    const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'))
-    if (modal) modal.hide()
-    await adminStore.fetchUsers()
+    if (result.success) {
+      const modalEl = document.getElementById('userModal')
+      if (modalEl) {
+        const bsModal = Modal.getOrCreateInstance(modalEl)
+        bsModal.hide()
+      }
+      setTimeout(() => {
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove())
+        document.body.classList.remove('modal-open')
+        document.body.style.removeProperty('overflow')
+        document.body.style.removeProperty('padding-right')
+      }, 300)
+      const actionText = editing.value ? 'editado' : 'creado'
+      showAlert(`Usuario "${editUser.fullName}" ${actionText} exitosamente.`, 'success')
+      await adminStore.fetchUsers()
+    } else {
+      modalError.value = result.message || 'Error al guardar usuario'
+    }
   } catch (error) {
-    alert(error.response?.data?.message || 'Error al actualizar usuario')
+    modalError.value = error.response?.data?.message || 'Error al guardar usuario'
   } finally {
     loading.value = false
   }
 }
 
-const toggleUser = async (userId, isActive) => {
-  const action = isActive ? 'desactivar' : 'activar'
-  if (confirm(`Estas seguro de ${action} este usuario?`)) {
-    const result = await adminStore.toggleUserStatus(userId)
+const toggleUser = async (user) => {
+  const action = user.isActive ? 'desactivar' : 'activar'
+  if (confirm(`¿Estás seguro de ${action} al usuario "${user.fullName}"?`)) {
+    const result = await adminStore.toggleUserStatus(user.id)
     if (result.success) {
+      showAlert(`Estado del usuario "${user.fullName}" actualizado exitosamente.`, 'success')
       await adminStore.fetchUsers()
+    } else {
+      showAlert(result.message || 'Error al cambiar estado del usuario', 'danger')
     }
   }
 }
 
-const confirmDelete = async (userId) => {
-  if (confirm('Estas seguro de eliminar este usuario?')) {
-    const result = await adminStore.deleteUser(userId)
+const confirmDelete = async (user) => {
+  if (confirm(`¿Estás seguro de eliminar al usuario "${user.fullName}"?`)) {
+    const result = await adminStore.deleteUser(user.id)
     if (result.success) {
+      showAlert(`Usuario "${user.fullName}" eliminado exitosamente.`, 'success')
       await adminStore.fetchUsers()
+    } else {
+      showAlert(result.message || 'Error al eliminar el usuario.', 'danger')
     }
   }
 }

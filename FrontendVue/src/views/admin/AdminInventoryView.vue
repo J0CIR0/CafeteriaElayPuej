@@ -160,6 +160,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { Modal } from 'bootstrap'
 import { useAdminStore } from '../../stores/admin'
 import InventoryMovementForm from '../../components/admin/InventoryMovementForm.vue'
 
@@ -177,7 +178,7 @@ onMounted(async () => {
 const openMovementModal = () => {
   const el = document.getElementById('inventoryModal')
   if (el) {
-    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    const modal = Modal.getOrCreateInstance(el)
     modal.show()
   }
 }
@@ -188,7 +189,7 @@ const openStockUpdate = (product) => {
   stockReason.value = ''
   const el = document.getElementById('stockModal')
   if (el) {
-    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    const modal = Modal.getOrCreateInstance(el)
     modal.show()
   }
 }
@@ -198,7 +199,7 @@ const submitStockUpdate = async () => {
   const result = await adminStore.updateStock(stockProduct.value.id, stockNewValue.value, stockReason.value)
   loading.value = false
   if (result.success) {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('stockModal'))
+    const modal = Modal.getInstance(document.getElementById('stockModal'))
     if (modal) modal.hide()
     await adminStore.fetchProducts()
     await adminStore.fetchInventoryMovements()

@@ -113,3 +113,9 @@ C:\Users\PAPU\Desktop\CafeteriaElayPuej\CafeteriaApi\obj\Debug\net8.0\refint\Caf
 C:\Users\PAPU\Desktop\CafeteriaElayPuej\CafeteriaApi\obj\Debug\net8.0\CafeteriaApi.pdb
 C:\Users\PAPU\Desktop\CafeteriaElayPuej\CafeteriaApi\obj\Debug\net8.0\CafeteriaApi.genruntimeconfig.cache
 C:\Users\PAPU\Desktop\CafeteriaElayPuej\CafeteriaApi\obj\Debug\net8.0\ref\CafeteriaApi.dll
+C:\Users\PAPU\Desktop\CafeteriaElayPuej\obj\validate-build\appsettings.Development.json
+C:\Users\PAPU\Desktop\CafeteriaElayPuej\obj\validate-build\appsettings.json
+C:\Users\PAPU\Desktop\CafeteriaElayPuej\obj\validate-build\CafeteriaApi.deps.json
+C:\Users\PAPU\Desktop\CafeteriaElayPuej\obj\validate-build\CafeteriaApi.runtimeconfig.json
+C:\Users\PAPU\Desktop\CafeteriaElayPuej\obj\validate-build\CafeteriaApi.dll
+C:\Users\PAPU\Desktop\CafeteriaElayPuej\obj\validate-build\CafeteriaApi.pdb

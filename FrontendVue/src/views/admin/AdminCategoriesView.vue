@@ -5,6 +5,12 @@
       <button class="btn btn-primary" @click="openCreateModal">Nueva Categoria</button>
     </div>
 
+    <!-- Alert Notification Banner -->
+    <div v-if="alert.show" :class="['alert', alert.type === 'success' ? 'alert-success' : 'alert-danger', 'alert-dismissible fade show mb-4']" role="alert">
+      <strong>{{ alert.type === 'success' ? '¡Éxito!' : '¡Error!' }}</strong> {{ alert.message }}
+      <button type="button" class="btn-close" @click="alert.show = false"></button>
+    </div>
+
     <div class="admin-card">
       <div class="card-body p-0">
         <div v-if="adminStore.loading" class="text-center py-4">
@@ -40,7 +46,7 @@
                 </td>
                 <td>
                   <button class="btn btn-primary-outline btn-sm me-1" @click="openEditModal(category)">Editar</button>
-                  <button class="btn btn-danger btn-sm" @click="confirmDelete(category.id)">Eliminar</button>
+                  <button class="btn btn-danger btn-sm" @click="confirmDelete(category)">Eliminar</button>
                 </td>
               </tr>
             </tbody>
@@ -54,7 +60,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { Modal } from 'bootstrap'
 import { useAdminStore } from '../../stores/admin'
 import CategoryForm from '../../components/admin/CategoryForm.vue'
 
@@ -62,6 +69,21 @@ const adminStore = useAdminStore()
 const categoryForm = ref(null)
 const editing = ref(false)
 const selectedCategory = ref(null)
+
+const alert = reactive({
+  show: false,
+  message: '',
+  type: 'success'
+})
+
+const showAlert = (message, type = 'success') => {
+  alert.message = message
+  alert.type = type
+  alert.show = true
+  setTimeout(() => {
+    alert.show = false
+  }, 4000)
+}
 
 onMounted(async () => {
   await adminStore.fetchCategories()
@@ -72,7 +94,7 @@ const openCreateModal = () => {
   selectedCategory.value = null
   const el = document.getElementById('categoryModal')
   if (el) {
-    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    const modal = Modal.getOrCreateInstance(el)
     modal.show()
   }
 }
@@ -82,21 +104,27 @@ const openEditModal = (category) => {
   selectedCategory.value = { ...category }
   const el = document.getElementById('categoryModal')
   if (el) {
-    const modal = bootstrap.Modal.getOrCreateInstance(el)
+    const modal = Modal.getOrCreateInstance(el)
     modal.show()
   }
 }
 
-const confirmDelete = async (id) => {
-  if (confirm('Estas seguro de eliminar esta categoria?')) {
-    const result = await adminStore.deleteCategory(id)
+const confirmDelete = async (category) => {
+  if (confirm(`¿Estás seguro de eliminar la categoría "${category.name}"?`)) {
+    const result = await adminStore.deleteCategory(category.id)
     if (result.success) {
+      showAlert(`Categoría "${category.name}" eliminada exitosamente.`, 'success')
       await adminStore.fetchCategories()
+    } else {
+      showAlert(result.message || 'Error al eliminar la categoría. Puede tener productos asociados.', 'danger')
     }
   }
 }
 
-const onSaved = async () => {
+const onSaved = async (data) => {
+  const actionText = data?.isEdit ? 'editada' : 'creada'
+  const nameText = data?.name ? ` "${data.name}"` : ''
+  showAlert(`Categoría${nameText} ${actionText} exitosamente.`, 'success')
   await adminStore.fetchCategories()
 }
 </script>

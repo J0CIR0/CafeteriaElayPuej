@@ -8,6 +8,10 @@
         </div>
         <form @submit.prevent="submitForm">
           <div class="modal-body">
+            <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+              {{ errorMessage }}
+              <button type="button" class="btn-close" @click="errorMessage = ''"></button>
+            </div>
             <div class="mb-3">
               <label class="form-label">Producto</label>
               <select class="form-select" v-model="form.productId" required>
@@ -44,6 +48,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { Modal } from 'bootstrap'
 import { useAdminStore } from '../../stores/admin'
 
 const props = defineProps({
@@ -57,6 +62,7 @@ const emit = defineEmits(['saved'])
 
 const adminStore = useAdminStore()
 const loading = ref(false)
+const errorMessage = ref('')
 const form = ref({
   productId: '',
   movementType: 'entry',
@@ -66,13 +72,16 @@ const form = ref({
 
 const submitForm = async () => {
   loading.value = true
+  errorMessage.value = ''
   const result = await adminStore.createMovement(form.value)
   loading.value = false
   if (result.success) {
     const modal = document.getElementById('inventoryModal')
-    const bsModal = bootstrap.Modal.getInstance(modal)
+    const bsModal = Modal.getInstance(modal)
     if (bsModal) bsModal.hide()
     emit('saved')
+  } else {
+    errorMessage.value = result.message || 'Error al registrar movimiento'
   }
 }
 </script>

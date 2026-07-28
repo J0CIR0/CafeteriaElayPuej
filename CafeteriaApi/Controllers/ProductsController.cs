@@ -61,6 +61,8 @@ namespace CafeteriaApi.Controllers
                     FlavorNotes = p.FlavorNotes,
                     ImageUrl = p.ImageUrl,
                     Stock = p.Stock,
+                    MinStock = p.MinStock,
+                    IsAvailable = p.IsAvailable,
                     CategoryName = p.Category != null ? p.Category.Name : string.Empty,
                     CategoryId = p.CategoryId
                 })
@@ -88,6 +90,8 @@ namespace CafeteriaApi.Controllers
                     FlavorNotes = p.FlavorNotes,
                     ImageUrl = p.ImageUrl,
                     Stock = p.Stock,
+                    MinStock = p.MinStock,
+                    IsAvailable = p.IsAvailable,
                     CategoryName = p.Category != null ? p.Category.Name : string.Empty,
                     CategoryId = p.CategoryId
                 })
@@ -115,6 +119,8 @@ namespace CafeteriaApi.Controllers
                     FlavorNotes = p.FlavorNotes,
                     ImageUrl = p.ImageUrl,
                     Stock = p.Stock,
+                    MinStock = p.MinStock,
+                    IsAvailable = p.IsAvailable,
                     CategoryName = p.Category != null ? p.Category.Name : string.Empty,
                     CategoryId = p.CategoryId
                 })
@@ -140,6 +146,8 @@ namespace CafeteriaApi.Controllers
                     FlavorNotes = p.FlavorNotes,
                     ImageUrl = p.ImageUrl,
                     Stock = p.Stock,
+                    MinStock = p.MinStock,
+                    IsAvailable = p.IsAvailable,
                     CategoryName = p.Category != null ? p.Category.Name : string.Empty,
                     CategoryId = p.CategoryId
                 })
@@ -168,7 +176,7 @@ namespace CafeteriaApi.Controllers
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            await RecordInventoryMovement(product.Id, product.Stock, "entry", "Creación de producto", 1);
+            await RecordInventoryMovement(product.Id, product.Stock, "entry", "Creación de producto", GetUserId());
 
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
@@ -209,7 +217,7 @@ namespace CafeteriaApi.Controllers
             {
                 string movementType = product.Stock > oldStock ? "entry" : "exit";
                 int quantity = Math.Abs(product.Stock - oldStock);
-                await RecordInventoryMovement(id, quantity, movementType, "Actualización de inventario", 1);
+                await RecordInventoryMovement(id, quantity, movementType, "Actualización de inventario", GetUserId());
             }
 
             return NoContent();
@@ -232,7 +240,7 @@ namespace CafeteriaApi.Controllers
             string movementType = updateStockDto.NewStock > oldStock ? "entry" : "exit";
             int quantity = Math.Abs(updateStockDto.NewStock - oldStock);
 
-            await RecordInventoryMovement(id, quantity, movementType, updateStockDto.Reason ?? "Ajuste de inventario", 1);
+            await RecordInventoryMovement(id, quantity, movementType, updateStockDto.Reason ?? "Ajuste de inventario", GetUserId());
 
             return NoContent();
         }
@@ -252,6 +260,7 @@ namespace CafeteriaApi.Controllers
                 return BadRequest(new { message = "No se puede eliminar un producto que tiene pedidos asociados" });
 
             product.IsAvailable = false;
+            product.IsDeleted = true;
             product.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
@@ -268,6 +277,17 @@ namespace CafeteriaApi.Controllers
                 .ToListAsync();
 
             return Ok(products);
+        }
+
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return userId;
+            }
+            var firstUser = _context.Users.FirstOrDefault();
+            return firstUser?.Id ?? 1;
         }
 
         private async Task RecordInventoryMovement(int productId, int quantity, string movementType, string reason, int userId)

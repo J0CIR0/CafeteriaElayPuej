@@ -113,6 +113,7 @@ namespace CafeteriaApi.Controllers
                 return BadRequest(new { message = "No se puede eliminar una categoría que tiene productos activos" });
 
             category.IsActive = false;
+            category.IsDeleted = true;
             await _context.SaveChangesAsync();
 
             return NoContent();
