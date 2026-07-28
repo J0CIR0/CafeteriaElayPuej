@@ -10,7 +10,7 @@ export const useProductsStore = defineStore('products', {
   }),
   getters: {
     getProductsByCategory: (state) => (categoryId) => {
-      return state.products.filter(p => p.categoryId === categoryId)
+      return state.products.filter((product) => Number(product.categoryId) === Number(categoryId))
     }
   },
   actions: {
@@ -59,7 +59,7 @@ export const useProductsStore = defineStore('products', {
     },
     async updateProduct(id, product) {
       try {
-        await api.put(`/Products/${id}`, product)
+        await api.put(`/Products/${id}`, { ...product, id })
         await this.fetchProducts()
         return { success: true }
       } catch (error) {

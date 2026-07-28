@@ -22,7 +22,7 @@
           <tbody>
             <tr v-for="item in cartStore.items" :key="item.id">
               <td>{{ item.name }}</td>
-              <td>${{ item.price.toFixed(2) }}</td>
+              <td>Bs {{ item.price.toFixed(2) }}</td>
               <td>
                 <div class="input-group" style="width: 120px;">
                   <button class="btn btn-outline-secondary" @click="updateQuantity(item.id, item.quantity - 1)">-</button>
@@ -30,7 +30,7 @@
                   <button class="btn btn-outline-secondary" @click="updateQuantity(item.id, item.quantity + 1)">+</button>
                 </div>
               </td>
-              <td>${{ (item.price * item.quantity).toFixed(2) }}</td>
+              <td>Bs {{ (item.price * item.quantity).toFixed(2) }}</td>
               <td>
                 <button class="btn btn-danger btn-sm" @click="cartStore.removeItem(item.id)">Eliminar</button>
               </td>
@@ -39,7 +39,7 @@
           <tfoot>
             <tr>
               <th colspan="3" class="text-end">Total:</th>
-              <th>${{ cartStore.totalPrice.toFixed(2) }}</th>
+              <th>Bs {{ cartStore.totalPrice.toFixed(2) }}</th>
               <th></th>
             </tr>
           </tfoot>

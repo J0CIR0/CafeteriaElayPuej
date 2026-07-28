@@ -16,7 +16,7 @@
               <div v-for="order in ordersStore.pendingOrders" :key="order.id" class="border-bottom mb-2 pb-2">
                 <div class="d-flex justify-content-between">
                   <span><strong>#{{ order.orderNumber }}</strong></span>
-                  <span>${{ order.total.toFixed(2) }}</span>
+                  <span>Bs {{ order.total.toFixed(2) }}</span>
                 </div>
                 <button class="btn btn-sm btn-success" @click="markAsPaid(order.id)">Marcar Pagado</button>
               </div>

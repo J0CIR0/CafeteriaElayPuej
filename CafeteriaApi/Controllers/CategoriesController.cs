@@ -28,6 +28,17 @@ namespace CafeteriaApi.Controllers
             return Ok(categories);
         }
 
+        [Authorize(Roles = "admin")]
+        [HttpGet("admin/all")]
+        public async Task<ActionResult<IEnumerable<Category>>> GetAllCategoriesForAdmin()
+        {
+            var categories = await _context.Categories
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+
+            return Ok(categories);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
@@ -54,7 +65,6 @@ namespace CafeteriaApi.Controllers
                 return BadRequest(new { message = "Ya existe una categoría con ese nombre" });
 
             category.CreatedAt = DateTime.UtcNow;
-            category.IsActive = true;
 
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();

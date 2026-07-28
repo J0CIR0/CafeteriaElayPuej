@@ -21,22 +21,22 @@
                   <tr v-for="item in cartStore.items" :key="item.id">
                     <td>{{ item.name }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td>${{ item.price.toFixed(2) }}</td>
-                    <td>${{ (item.price * item.quantity).toFixed(2) }}</td>
+                    <td>Bs {{ item.price.toFixed(2) }}</td>
+                    <td>Bs {{ (item.price * item.quantity).toFixed(2) }}</td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr>
                     <th colspan="3" class="text-end">Subtotal:</th>
-                    <th>${{ cartStore.totalPrice.toFixed(2) }}</th>
+                    <th>Bs {{ cartStore.totalPrice.toFixed(2) }}</th>
                   </tr>
                   <tr>
                     <th colspan="3" class="text-end">IVA (13%):</th>
-                    <th>${{ (cartStore.totalPrice * 0.13).toFixed(2) }}</th>
+                    <th>Bs {{ (cartStore.totalPrice * 0.13).toFixed(2) }}</th>
                   </tr>
                   <tr>
                     <th colspan="3" class="text-end">Total:</th>
-                    <th>${{ (cartStore.totalPrice * 1.13).toFixed(2) }}</th>
+                    <th>Bs {{ (cartStore.totalPrice * 1.13).toFixed(2) }}</th>
                   </tr>
                 </tfoot>
               </table>
@@ -77,7 +77,7 @@
           <div class="card-body text-center">
             <h6 class="card-title">QR para Pago</h6>
             <img src="/images/qr-code.png" alt="QR Code" class="img-fluid" style="max-width: 200px;">
-            <p class="mt-2">Monto a pagar: <strong>${{ (cartStore.totalPrice * 1.13).toFixed(2) }}</strong></p>
+            <p class="mt-2">Monto a pagar: <strong>Bs {{ (cartStore.totalPrice * 1.13).toFixed(2) }}</strong></p>
             <p class="text-muted small">Escanea el QR para realizar el pago</p>
           </div>
         </div>

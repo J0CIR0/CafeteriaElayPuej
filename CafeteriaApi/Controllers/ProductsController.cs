@@ -44,6 +44,33 @@ namespace CafeteriaApi.Controllers
             return Ok(products);
         }
 
+        [Authorize(Roles = "admin")]
+        [HttpGet("admin/all")]
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProductsForAdmin()
+        {
+            var products = await _context.Products
+                .Include(p => p.Category)
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    PreparationTime = p.PreparationTime,
+                    Origin = p.Origin,
+                    FlavorNotes = p.FlavorNotes,
+                    ImageUrl = p.ImageUrl,
+                    Stock = p.Stock,
+                    CategoryName = p.Category != null ? p.Category.Name : string.Empty,
+                    CategoryId = p.CategoryId
+                })
+                .OrderBy(p => p.CategoryName)
+                .ThenBy(p => p.Name)
+                .ToListAsync();
+
+            return Ok(products);
+        }
+
         [HttpGet("available")]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetAvailableProducts()
         {
@@ -137,7 +164,6 @@ namespace CafeteriaApi.Controllers
 
             product.CreatedAt = DateTime.UtcNow;
             product.UpdatedAt = DateTime.UtcNow;
-            product.IsAvailable = true;
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();

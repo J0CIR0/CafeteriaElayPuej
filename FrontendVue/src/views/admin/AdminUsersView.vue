@@ -2,6 +2,7 @@
   <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h5 class="section-title" style="margin-bottom:0;">Gestion de Usuarios</h5>
+      <button class="btn btn-primary" @click="openCreateModal">Nuevo Usuario</button>
     </div>
 
     <div class="admin-card">
@@ -69,10 +70,10 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Editar Usuario</h5>
+            <h5 class="modal-title">{{ editing ? 'Editar Usuario' : 'Nuevo Usuario' }}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <form @submit.prevent="updateUser">
+          <form @submit.prevent="saveUser">
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label" style="font-size:0.85rem;font-weight:500;">Nombre Completo</label>
@@ -81,6 +82,10 @@
               <div class="mb-3">
                 <label class="form-label" style="font-size:0.85rem;font-weight:500;">Email</label>
                 <input type="email" class="form-modern" v-model="editUser.email" required>
+              </div>
+              <div class="mb-3" v-if="!editing">
+                <label class="form-label" style="font-size:0.85rem;font-weight:500;">Contraseña temporal</label>
+                <input type="password" class="form-modern" v-model="editUser.password" required>
               </div>
               <div class="mb-3">
                 <label class="form-label" style="font-size:0.85rem;font-weight:500;">Telefono</label>
@@ -120,11 +125,13 @@ import { useAdminStore } from '../../stores/admin'
 
 const adminStore = useAdminStore()
 const loading = ref(false)
+const editing = ref(false)
 const editUser = reactive({
   id: null,
   fullName: '',
   email: '',
   phone: '',
+  password: '',
   role: 'customer',
   isActive: true,
   isEmailVerified: false
@@ -135,10 +142,12 @@ onMounted(async () => {
 })
 
 const openEditModal = (user) => {
+  editing.value = true
   editUser.id = user.id
   editUser.fullName = user.fullName
   editUser.email = user.email
   editUser.phone = user.phone || ''
+  editUser.password = ''
   editUser.role = user.role
   editUser.isActive = user.isActive
   editUser.isEmailVerified = user.isEmailVerified || false
@@ -146,17 +155,39 @@ const openEditModal = (user) => {
   modal.show()
 }
 
-const updateUser = async () => {
+const openCreateModal = () => {
+  editing.value = false
+  editUser.id = null
+  editUser.fullName = ''
+  editUser.email = ''
+  editUser.phone = ''
+  editUser.password = ''
+  editUser.role = 'customer'
+  editUser.isActive = true
+  editUser.isEmailVerified = false
+  const modal = new bootstrap.Modal(document.getElementById('userModal'))
+  modal.show()
+}
+
+const saveUser = async () => {
   loading.value = true
   try {
-    await adminStore.updateUser(editUser.id, {
+    const payload = {
       fullName: editUser.fullName,
       email: editUser.email,
       phone: editUser.phone,
+      password: editUser.password,
       role: editUser.role,
       isActive: editUser.isActive,
       isEmailVerified: editUser.isEmailVerified
-    })
+    }
+
+    if (editing.value) {
+      await adminStore.updateUser(editUser.id, payload)
+    } else {
+      await adminStore.createUser(payload)
+    }
+
     const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'))
     if (modal) modal.hide()
     await adminStore.fetchUsers()

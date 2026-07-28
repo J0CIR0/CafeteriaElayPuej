@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useAdminStore } from '../../stores/admin'
 
 const props = defineProps({
@@ -142,5 +142,5 @@ const submitForm = async () => {
   }
 }
 
-const categories = adminStore.categories
+const categories = computed(() => adminStore.categories)
 </script>

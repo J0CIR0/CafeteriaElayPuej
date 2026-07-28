@@ -1,6 +1,6 @@
 <template>
   <div class="admin-wrapper" v-if="authStore.isAuthenticated">
-    <nav class="admin-navbar navbar navbar-expand-lg">
+    <nav class="admin-navbar navbar navbar-expand-lg navbar-dark">
       <div class="container">
         <router-link class="navbar-brand" to="/">
           Cafeteria Elay Puej
@@ -43,9 +43,9 @@
         </div>
       </div>
     </nav>
-    <div class="container py-4">
+    <main class="app-shell-main py-4">
       <router-view />
-    </div>
+    </main>
   </div>
   <div v-else>
     <router-view />

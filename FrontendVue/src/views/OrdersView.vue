@@ -43,22 +43,22 @@
                   <tr v-for="detail in order.orderDetails" :key="detail.id">
                     <td>{{ detail.product.name }}</td>
                     <td>{{ detail.quantity }}</td>
-                    <td>${{ detail.unitPrice.toFixed(2) }}</td>
-                    <td>${{ detail.subtotal.toFixed(2) }}</td>
+                    <td>Bs {{ detail.unitPrice.toFixed(2) }}</td>
+                    <td>Bs {{ detail.subtotal.toFixed(2) }}</td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr>
                     <th colspan="3" class="text-end">Subtotal:</th>
-                    <th>${{ order.subtotal.toFixed(2) }}</th>
+                    <th>Bs {{ order.subtotal.toFixed(2) }}</th>
                   </tr>
                   <tr>
                     <th colspan="3" class="text-end">IVA:</th>
-                    <th>${{ order.tax.toFixed(2) }}</th>
+                    <th>Bs {{ order.tax.toFixed(2) }}</th>
                   </tr>
                   <tr>
                     <th colspan="3" class="text-end">Total:</th>
-                    <th>${{ order.total.toFixed(2) }}</th>
+                    <th>Bs {{ order.total.toFixed(2) }}</th>
                   </tr>
                 </tfoot>
               </table>

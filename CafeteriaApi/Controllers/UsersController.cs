@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CafeteriaApi.Data;
+using CafeteriaApi.DTOs;
 using CafeteriaApi.Models;
 using System.Security.Claims;
 
@@ -23,7 +24,6 @@ namespace CafeteriaApi.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             var users = await _context.Users
-                .Where(u => u.IsActive)
                 .Select(u => new
                 {
                     u.Id,
@@ -32,6 +32,7 @@ namespace CafeteriaApi.Controllers
                     u.Role,
                     u.Phone,
                     u.IsActive,
+                    u.IsEmailVerified,
                     u.CreatedAt
                 })
                 .OrderBy(u => u.FullName)
@@ -44,7 +45,6 @@ namespace CafeteriaApi.Controllers
         public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _context.Users
-                .Where(u => u.Id == id && u.IsActive)
                 .Select(u => new
                 {
                     u.Id,
@@ -53,15 +53,65 @@ namespace CafeteriaApi.Controllers
                     u.Role,
                     u.Phone,
                     u.IsActive,
+                    u.IsEmailVerified,
                     u.CreatedAt,
                     u.UpdatedAt
                 })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
                 return NotFound(new { message = "Usuario no encontrado" });
 
             return Ok(user);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([FromBody] AdminUserDto adminUserDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == adminUserDto.Email);
+            if (existingUser != null)
+                return BadRequest(new { message = "El email ya está registrado" });
+
+            var normalizedRole = adminUserDto.Role.ToLower();
+            if (normalizedRole == "mesero")
+                normalizedRole = "worker";
+            else if (normalizedRole == "cliente")
+                normalizedRole = "customer";
+            else if (normalizedRole != "admin" && normalizedRole != "worker" && normalizedRole != "customer")
+                normalizedRole = "customer";
+
+            var user = new User
+            {
+                Email = adminUserDto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminUserDto.Password),
+                FullName = adminUserDto.FullName,
+                Phone = adminUserDto.Phone,
+                Role = normalizedRole,
+                IsActive = adminUserDto.IsActive,
+                IsEmailVerified = adminUserDto.IsEmailVerified,
+                EmailVerifiedAt = adminUserDto.IsEmailVerified ? DateTime.UtcNow : null,
+                ConcurrencyStamp = Guid.NewGuid().ToString(),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, new
+            {
+                user.Id,
+                user.Email,
+                user.FullName,
+                user.Role,
+                user.Phone,
+                user.IsActive,
+                user.IsEmailVerified,
+                user.CreatedAt
+            });
         }
 
         [HttpPut("{id}")]
@@ -84,6 +134,9 @@ namespace CafeteriaApi.Controllers
             existingUser.FullName = user.FullName;
             existingUser.Phone = user.Phone;
             existingUser.Role = user.Role;
+            existingUser.IsActive = user.IsActive;
+            existingUser.IsEmailVerified = user.IsEmailVerified;
+            existingUser.EmailVerifiedAt = user.IsEmailVerified ? (existingUser.EmailVerifiedAt ?? DateTime.UtcNow) : null;
             existingUser.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

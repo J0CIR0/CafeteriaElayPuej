@@ -1,6 +1,31 @@
 import { defineStore } from 'pinia'
 import api from '../services/api'
 
+const normalizeRoleFromApi = (role) => {
+  const normalized = (role || '').toLowerCase()
+  if (normalized === 'worker') return 'mesero'
+  if (normalized === 'customer') return 'cliente'
+  return normalized || 'cliente'
+}
+
+const normalizeRoleToApi = (role) => {
+  const normalized = (role || '').toLowerCase()
+  if (normalized === 'mesero') return 'worker'
+  if (normalized === 'cliente') return 'customer'
+  return normalized || 'customer'
+}
+
+const computeStatistics = (products, users, orders = []) => ({
+  totalProducts: products.length,
+  totalUsers: users.length,
+  totalOrders: orders.length,
+  totalRevenue: orders
+    .filter((order) => order.paymentStatus === 'paid')
+    .reduce((sum, order) => sum + (Number(order.total) || 0), 0),
+  pendingOrders: orders.filter((order) => order.paymentStatus === 'pending').length,
+  lowStockProducts: products.filter((product) => Number(product.stock) <= Number(product.minStock || 0)).length
+})
+
 export const useAdminStore = defineStore('admin', {
   state: () => ({
     products: [],
@@ -20,37 +45,34 @@ export const useAdminStore = defineStore('admin', {
     error: null
   }),
   getters: {
-    getProductById: (state) => (id) => {
-      return state.products.find(p => p.id === id)
-    },
-    getCategoryById: (state) => (id) => {
-      return state.categories.find(c => c.id === id)
-    },
-    getOrdersByStatus: (state) => (status) => {
-      return state.orders.filter(o => o.orderStatus === status)
-    },
+    getProductById: (state) => (id) => state.products.find((product) => Number(product.id) === Number(id)),
+    getCategoryById: (state) => (id) => state.categories.find((category) => Number(category.id) === Number(id)),
+    getOrdersByStatus: (state) => (status) => state.orders.filter((order) => order.orderStatus === status),
     getRevenueToday: (state) => {
       const today = new Date().toDateString()
       return state.orders
-        .filter(o => o.paymentStatus === 'paid' && new Date(o.createdAt).toDateString() === today)
-        .reduce((sum, o) => sum + o.total, 0)
+        .filter((order) => order.paymentStatus === 'paid' && new Date(order.createdAt).toDateString() === today)
+        .reduce((sum, order) => sum + (Number(order.total) || 0), 0)
     },
     getRevenueThisWeek: (state) => {
       const weekAgo = new Date()
       weekAgo.setDate(weekAgo.getDate() - 7)
       return state.orders
-        .filter(o => o.paymentStatus === 'paid' && new Date(o.createdAt) >= weekAgo)
-        .reduce((sum, o) => sum + o.total, 0)
+        .filter((order) => order.paymentStatus === 'paid' && new Date(order.createdAt) >= weekAgo)
+        .reduce((sum, order) => sum + (Number(order.total) || 0), 0)
     },
     getRevenueThisMonth: (state) => {
       const monthAgo = new Date()
       monthAgo.setMonth(monthAgo.getMonth() - 1)
       return state.orders
-        .filter(o => o.paymentStatus === 'paid' && new Date(o.createdAt) >= monthAgo)
-        .reduce((sum, o) => sum + o.total, 0)
+        .filter((order) => order.paymentStatus === 'paid' && new Date(order.createdAt) >= monthAgo)
+        .reduce((sum, order) => sum + (Number(order.total) || 0), 0)
     }
   },
   actions: {
+    refreshStatistics() {
+      this.statistics = computeStatistics(this.products, this.users, this.orders)
+    },
     async fetchDashboardData() {
       this.loading = true
       this.error = null
@@ -72,16 +94,18 @@ export const useAdminStore = defineStore('admin', {
     },
     async fetchProducts() {
       try {
-        const response = await api.get('/Products')
+        const response = await api.get('/Products/admin/all')
         this.products = response.data
+        this.refreshStatistics()
       } catch (error) {
         console.error('Error al cargar productos', error)
       }
     },
     async fetchCategories() {
       try {
-        const response = await api.get('/Categories')
+        const response = await api.get('/Categories/admin/all')
         this.categories = response.data
+        this.refreshStatistics()
       } catch (error) {
         console.error('Error al cargar categorias', error)
       }
@@ -89,7 +113,11 @@ export const useAdminStore = defineStore('admin', {
     async fetchUsers() {
       try {
         const response = await api.get('/Users')
-        this.users = response.data
+        this.users = response.data.map((user) => ({
+          ...user,
+          role: normalizeRoleFromApi(user.role)
+        }))
+        this.refreshStatistics()
       } catch (error) {
         console.error('Error al cargar usuarios', error)
       }
@@ -98,6 +126,7 @@ export const useAdminStore = defineStore('admin', {
       try {
         const response = await api.get('/Orders')
         this.orders = response.data
+        this.refreshStatistics()
       } catch (error) {
         console.error('Error al cargar pedidos', error)
       }
@@ -112,17 +141,7 @@ export const useAdminStore = defineStore('admin', {
     },
     async fetchStatistics() {
       try {
-        const response = await api.get('/Inventory/summary')
-        this.statistics = {
-          totalProducts: this.products.length,
-          totalUsers: this.users.length,
-          totalOrders: this.orders.length,
-          totalRevenue: this.orders
-            .filter(o => o.paymentStatus === 'paid')
-            .reduce((sum, o) => sum + o.total, 0),
-          pendingOrders: this.orders.filter(o => o.paymentStatus === 'pending').length,
-          lowStockProducts: response.data.lowStockCount || 0
-        }
+        this.statistics = computeStatistics(this.products, this.users, this.orders)
       } catch (error) {
         console.error('Error al cargar estadisticas', error)
       }
@@ -138,7 +157,7 @@ export const useAdminStore = defineStore('admin', {
     },
     async updateProduct(id, productData) {
       try {
-        await api.put(`/Products/${id}`, productData)
+        await api.put(`/Products/${id}`, { ...productData, id })
         await this.fetchProducts()
         return { success: true }
       } catch (error) {
@@ -175,7 +194,7 @@ export const useAdminStore = defineStore('admin', {
     },
     async updateCategory(id, categoryData) {
       try {
-        await api.put(`/Categories/${id}`, categoryData)
+        await api.put(`/Categories/${id}`, { ...categoryData, id })
         await this.fetchCategories()
         return { success: true }
       } catch (error) {
@@ -191,22 +210,29 @@ export const useAdminStore = defineStore('admin', {
         return { success: false, message: error.response?.data?.message || 'Error al eliminar categoria' }
       }
     },
-    async updateOrderPaymentStatus(orderId, status) {
+    async createUser(userData) {
       try {
-        await api.patch(`/Orders/${orderId}/payment-status`, { status })
-        await this.fetchOrders()
-        return { success: true }
+        const response = await api.post('/Users', {
+          ...userData,
+          role: normalizeRoleToApi(userData.role)
+        })
+        await this.fetchUsers()
+        return { success: true, data: response.data }
       } catch (error) {
-        return { success: false, message: error.response?.data?.message || 'Error al actualizar estado de pago' }
+        return { success: false, message: error.response?.data?.message || 'Error al crear usuario' }
       }
     },
-    async updateOrderStatus(orderId, status) {
+    async updateUser(id, userData) {
       try {
-        await api.patch(`/Orders/${orderId}/order-status`, { status })
-        await this.fetchOrders()
+        await api.put(`/Users/${id}`, {
+          ...userData,
+          id,
+          role: normalizeRoleToApi(userData.role)
+        })
+        await this.fetchUsers()
         return { success: true }
       } catch (error) {
-        return { success: false, message: error.response?.data?.message || 'Error al actualizar estado del pedido' }
+        return { success: false, message: error.response?.data?.message || 'Error al actualizar usuario' }
       }
     },
     async toggleUserStatus(userId) {
@@ -227,13 +253,22 @@ export const useAdminStore = defineStore('admin', {
         return { success: false, message: error.response?.data?.message || 'Error al eliminar usuario' }
       }
     },
-    async updateUser(id, userData) {
+    async updateOrderPaymentStatus(orderId, status) {
       try {
-        await api.put(`/Users/${id}`, userData)
-        await this.fetchUsers()
+        await api.patch(`/Orders/${orderId}/payment-status`, { status })
+        await this.fetchOrders()
         return { success: true }
       } catch (error) {
-        return { success: false, message: error.response?.data?.message || 'Error al actualizar usuario' }
+        return { success: false, message: error.response?.data?.message || 'Error al actualizar estado de pago' }
+      }
+    },
+    async updateOrderStatus(orderId, status) {
+      try {
+        await api.patch(`/Orders/${orderId}/order-status`, { status })
+        await this.fetchOrders()
+        return { success: true }
+      } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Error al actualizar estado del pedido' }
       }
     },
     async createMovement(movementData) {

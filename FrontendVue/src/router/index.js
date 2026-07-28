@@ -62,37 +62,37 @@ const routes = [
   {
     path: '/admin/products',
     name: 'AdminProducts',
-    component: () => import('../views/admin/AdminProductsView.vue'),
+    redirect: { path: '/admin', query: { tab: 'products' } },
     meta: { requiresAdmin: true }
   },
   {
     path: '/admin/categories',
     name: 'AdminCategories',
-    component: () => import('../views/admin/AdminCategoriesView.vue'),
+    redirect: { path: '/admin', query: { tab: 'categories' } },
     meta: { requiresAdmin: true }
   },
   {
     path: '/admin/orders',
     name: 'AdminOrders',
-    component: () => import('../views/admin/AdminOrdersView.vue'),
+    redirect: { path: '/admin', query: { tab: 'orders' } },
     meta: { requiresAdmin: true }
   },
   {
     path: '/admin/inventory',
     name: 'AdminInventory',
-    component: () => import('../views/admin/AdminInventoryView.vue'),
+    redirect: { path: '/admin', query: { tab: 'inventory' } },
     meta: { requiresAdmin: true }
   },
   {
     path: '/admin/users',
     name: 'AdminUsers',
-    component: () => import('../views/admin/AdminUsersView.vue'),
+    redirect: { path: '/admin', query: { tab: 'users' } },
     meta: { requiresAdmin: true }
   },
   {
     path: '/admin/reports',
     name: 'AdminReports',
-    component: () => import('../views/admin/AdminReportsView.vue'),
+    redirect: { path: '/admin', query: { tab: 'reports' } },
     meta: { requiresAdmin: true }
   }
 ]
