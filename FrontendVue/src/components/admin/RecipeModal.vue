@@ -18,15 +18,15 @@
               <div class="row text-center">
                 <div class="col-md-3">
                   <div class="small text-muted">Precio de Venta</div>
-                  <div class="h5 mb-0 font-weight-bold text-dark">Bs {{ salePrice.toFixed(2) }}</div>
+                  <div class="h5 mb-0 font-weight-bold text-dark">Bs. {{ salePrice.toFixed(2) }}</div>
                 </div>
                 <div class="col-md-3">
                   <div class="small text-muted">Costo Estimado</div>
-                  <div class="h5 mb-0 font-weight-bold text-danger">Bs {{ calculatedCost.toFixed(2) }}</div>
+                  <div class="h5 mb-0 font-weight-bold text-danger">Bs. {{ calculatedCost.toFixed(2) }}</div>
                 </div>
                 <div class="col-md-3">
                   <div class="small text-muted">Ganancia Neta</div>
-                  <div class="h5 mb-0 font-weight-bold text-success">Bs {{ (salePrice - calculatedCost).toFixed(2) }}</div>
+                  <div class="h5 mb-0 font-weight-bold text-success">Bs. {{ (salePrice - calculatedCost).toFixed(2) }}</div>
                 </div>
                 <div class="col-md-3">
                   <div class="small text-muted">Margen (%)</div>

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold" style="color: var(--color-cafe);">
+      <h2 class="fw-bold" style="color: #ffffff;">
         <span style="border-left: 4px solid var(--color-cafe); padding-left: 12px;">Control de Inventario</span>
       </h2>
       <button class="btn btn-cafe" @click="openMovementModal">
@@ -92,7 +92,7 @@
     </div>
 
     <div class="mt-4">
-      <h4 class="fw-bold" style="color: var(--color-cafe);">Ultimos Movimientos</h4>
+      <h4 class="fw-bold" style="color:white;">Ultimos Movimientos</h4>
       <div class="admin-card">
         <div class="card-body p-0">
           <div class="table-responsive">

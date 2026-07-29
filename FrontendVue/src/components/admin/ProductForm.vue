@@ -36,8 +36,8 @@
             <div class="row">
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label" style="font-size:0.85rem;font-weight:500;">Precio</label>
-                  <input type="number" step="0.01" class="form-modern" v-model="form.price" required>
+                  <label class="form-label">Precio (Bs.)</label>
+                  <input type="number" step="0.01" class="form-control" v-model="form.price" required>
                 </div>
               </div>
               <div class="col-md-4">

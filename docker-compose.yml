@@ -1,0 +1,65 @@
+services:
+  # Database Service (MariaDB / MySQL)
+  db:
+    image: mariadb:10.11
+    container_name: cafeteria_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword123}
+      MYSQL_DATABASE: ${DB_NAME:-cafeteria_elay_puej}
+      MYSQL_USER: ${DB_USER:-cafeteria_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-cafeteria_pass_2024}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./dbcafeteriaelaypuej.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - cafeteria_net
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service (ASP.NET Core Web API 8.0)
+  backend:
+    build:
+      context: ./CafeteriaApi
+      dockerfile: Dockerfile
+    container_name: cafeteria_backend
+    restart: always
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=db;Database=${DB_NAME:-cafeteria_elay_puej};User=${DB_USER:-cafeteria_user};Password=${DB_PASSWORD:-cafeteria_pass_2024};"
+      JwtSettings__SecretKey: "${JWT_SECRET:-CafeteriaElayPuejSuperSecretKey2024WithMoreThan32Chars}"
+      JwtSettings__Issuer: "CafeteriaElayPuej"
+      JwtSettings__Audience: "CafeteriaElayPuejUsers"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cafeteria_net
+
+  # Frontend Service (Vue.js + Nginx)
+  frontend:
+    build:
+      context: ./FrontendVue
+      dockerfile: Dockerfile
+    container_name: cafeteria_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - cafeteria_net
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  cafeteria_net:
+    driver: bridge

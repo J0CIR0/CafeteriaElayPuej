@@ -11,6 +11,8 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.token,
     isAdmin: (state) => state.user?.role === 'admin',
     isWorker: (state) => state.user?.role === 'worker' || state.user?.role === 'admin',
+    isCustomer: (state) => !state.user || state.user?.role === 'customer' || state.user?.role === 'cliente',
+    isClient: (state) => !state.user || state.user?.role === 'customer' || state.user?.role === 'cliente',
     isEmailVerified: (state) => state.user?.isEmailVerified || false
   },
   actions: {

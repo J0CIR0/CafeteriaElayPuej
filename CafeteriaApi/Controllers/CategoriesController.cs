@@ -28,7 +28,7 @@ namespace CafeteriaApi.Controllers
             return Ok(categories);
         }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,worker")]
         [HttpGet("admin/all")]
         public async Task<ActionResult<IEnumerable<Category>>> GetAllCategoriesForAdmin()
         {

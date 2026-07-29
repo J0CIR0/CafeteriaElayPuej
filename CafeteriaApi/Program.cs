@@ -14,7 +14,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -76,12 +81,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVueFrontend",
-        builder =>
+        policy =>
         {
-            builder.WithOrigins("http://localhost:5173", "http://localhost:5174")
-                   .AllowAnyHeader()
-                   .AllowAnyMethod()
-                   .AllowCredentials();
+            policy.SetIsOriginAllowed(_ => true)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
 });
 
@@ -90,6 +95,19 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<EmailService>();
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al aplicar migraciones en inicio: {ex.Message}");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

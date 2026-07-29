@@ -58,7 +58,13 @@ const handleLogin = async () => {
   loading.value = false
   
   if (result.success) {
-    router.push('/')
+    if (authStore.isAdmin) {
+      router.push('/admin')
+    } else if (authStore.user?.role === 'worker') {
+      router.push('/dashboard')
+    } else {
+      router.push('/')
+    }
   } else {
     error.value = result.message
     needsVerification.value = result.message.toLowerCase().includes('verificar')

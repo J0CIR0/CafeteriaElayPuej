@@ -57,13 +57,17 @@
                   </span>
                 </td>
                 <td>
-                  <button class="btn btn-primary-outline btn-sm me-1" @click="openEditModal(user)">Editar</button>
-                  <button v-if="user.role !== 'admin'" class="btn btn-warning btn-sm me-1" @click="toggleUser(user)">
-                    {{ user.isActive ? 'Desactivar' : 'Activar' }}
-                  </button>
-                  <button v-if="user.role !== 'admin'" class="btn btn-danger btn-sm" @click="confirmDelete(user)">
-                    Eliminar
-                  </button>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-action-icon btn-action-edit" @click="openEditModal(user)" title="Editar Usuario">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button v-if="user.role !== 'admin'" class="btn btn-action-icon btn-action-toggle" @click="toggleUser(user)" :title="user.isActive ? 'Desactivar' : 'Activar'">
+                      <i :class="user.isActive ? 'bi bi-person-x-fill' : 'bi bi-person-check-fill'"></i>
+                    </button>
+                    <button v-if="user.role !== 'admin'" class="btn btn-action-icon btn-action-delete" @click="confirmDelete(user)" title="Eliminar Usuario">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>

@@ -40,12 +40,14 @@ const routes = [
   {
     path: '/checkout',
     name: 'Checkout',
-    component: () => import('../views/CheckoutView.vue')
+    component: () => import('../views/CheckoutView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/orders',
     name: 'Orders',
-    component: () => import('../views/OrdersView.vue')
+    component: () => import('../views/OrdersView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/profile',
@@ -106,6 +108,48 @@ const routes = [
     name: 'AdminReports',
     component: () => import('../views/admin/AdminReportsView.vue'),
     meta: { requiresAdmin: true }
+  },
+  {
+    path: '/dashboard',
+    name: 'WorkerDashboard',
+    component: () => import('../views/worker/WorkerDashboardView.vue'),
+    meta: { requiresWorker: true }
+  },
+  {
+    path: '/dashboard/orders',
+    name: 'WorkerOrders',
+    component: () => import('../views/worker/WorkerOrdersView.vue'),
+    meta: { requiresWorker: true }
+  },
+  {
+    path: '/dashboard/clients',
+    name: 'WorkerClients',
+    component: () => import('../views/worker/WorkerClientsView.vue'),
+    meta: { requiresWorker: true }
+  },
+  {
+    path: '/dashboard/products',
+    name: 'WorkerProducts',
+    component: () => import('../views/worker/WorkerProductsView.vue'),
+    meta: { requiresWorker: true }
+  },
+  {
+    path: '/dashboard/inventory',
+    name: 'WorkerInventory',
+    component: () => import('../views/worker/WorkerInventoryView.vue'),
+    meta: { requiresWorker: true }
+  },
+  {
+    path: '/dashboard/reports',
+    name: 'WorkerReports',
+    component: () => import('../views/worker/WorkerReportsView.vue'),
+    meta: { requiresWorker: true }
+  },
+  {
+    path: '/dashboard/profile',
+    name: 'WorkerProfile',
+    component: () => import('../views/worker/WorkerProfileView.vue'),
+    meta: { requiresWorker: true }
   }
 ]
 
@@ -118,6 +162,8 @@ router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    next('/')
+  } else if (to.meta.requiresWorker && !authStore.isWorker) {
     next('/')
   } else if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')

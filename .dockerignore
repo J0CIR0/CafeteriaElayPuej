@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+.vs
+.vscode
+README.md
+node_modules
+dist
+bin
+obj

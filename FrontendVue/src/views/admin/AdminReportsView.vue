@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold" style="color: var(--color-cafe);">
+      <h2 class="fw-bold" style="color:white">
         <span style="border-left: 4px solid var(--color-cafe); padding-left: 12px;">Reportes</span>
       </h2>
     </div>

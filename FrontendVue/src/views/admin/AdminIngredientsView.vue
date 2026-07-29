@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h5 class="section-title mb-1">Gestion de Insumos y Materias Primas</h5>
-        <p class="text-muted small mb-0">Administra los ingredientes, costos unitarios, stock y fechas de vencimiento de tu cafetería.</p>
+        <p style="color:white">Administra los ingredientes, costos unitarios, stock y fechas de vencimiento de tu cafetería.</p>
       </div>
       <button class="btn btn-primary" @click="openCreateModal">+ Nuevo Insumo</button>
     </div>
@@ -61,11 +61,17 @@
                   <span v-else class="badge-modern badge-verde">Suficiente</span>
                 </td>
                 <td>
-                  <button class="btn btn-outline-warning btn-sm me-1" @click="openWasteModal(ing)" title="Registrar Pérdida por Vencimiento/Merma">
-                    Pérdida
-                  </button>
-                  <button class="btn btn-primary-outline btn-sm me-1" @click="openEditModal(ing)">Editar</button>
-                  <button class="btn btn-danger btn-sm" @click="confirmDelete(ing)">Eliminar</button>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-action-icon btn-action-waste" @click="openWasteModal(ing)" title="Pérdida por Vencimiento/Merma">
+                      <i class="bi bi-box-arrow-down"></i>
+                    </button>
+                    <button class="btn btn-action-icon btn-action-edit" @click="openEditModal(ing)" title="Editar Insumo">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button class="btn btn-action-icon btn-action-delete" @click="confirmDelete(ing)" title="Eliminar Insumo">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>

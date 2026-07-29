@@ -45,8 +45,14 @@
                   </span>
                 </td>
                 <td>
-                  <button class="btn btn-primary-outline btn-sm me-1" @click="openEditModal(category)">Editar</button>
-                  <button class="btn btn-danger btn-sm" @click="confirmDelete(category)">Eliminar</button>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-action-icon btn-action-edit" @click="openEditModal(category)" title="Editar Categoría">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button class="btn btn-action-icon btn-action-delete" @click="confirmDelete(category)" title="Eliminar Categoría">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>

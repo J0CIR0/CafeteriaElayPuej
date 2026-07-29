@@ -8,7 +8,7 @@ namespace CafeteriaApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "admin,worker")]
+    [Authorize(Roles = "admin")]
     public class FinancialReportsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

@@ -42,7 +42,7 @@
                   <div style="font-size:0.75rem;color:var(--color-texto-claro);" v-if="product.flavorNotes">{{ product.flavorNotes }}</div>
                 </td>
                 <td>{{ product.categoryName || 'Sin categoria' }}</td>
-                <td style="font-weight:500;color:var(--color-verde-medio);">${{ product.price.toFixed(2) }}</td>
+                <td style="font-weight:500;color:var(--color-verde-medio);">Bs. {{ product.price.toFixed(2) }}</td>
                 <td>
                   <span :class="product.stock <= product.minStock ? 'text-danger' : ''">
                     {{ product.stock }}
@@ -56,9 +56,17 @@
                   </span>
                 </td>
                 <td>
-                  <button class="btn btn-outline-info btn-sm me-1" @click="openRecipeModal(product)" title="Configurar Receta e Insumos">Receta</button>
-                  <button class="btn btn-primary-outline btn-sm me-1" @click="openEditModal(product)">Editar</button>
-                  <button class="btn btn-danger btn-sm" @click="confirmDelete(product)">Eliminar</button>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-action-icon btn-action-recipe" @click="openRecipeModal(product)" title="Receta e Insumos">
+                      <i class="bi bi-journal-text"></i>
+                    </button>
+                    <button class="btn btn-action-icon btn-action-edit" @click="openEditModal(product)" title="Editar Producto">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button class="btn btn-action-icon btn-action-delete" @click="confirmDelete(product)" title="Eliminar Producto">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>

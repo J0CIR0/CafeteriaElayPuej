@@ -1,27 +1,27 @@
 <template>
-  <div class="container-fluid px-3 px-lg-4 py-3">
+  <div class="container-fluid px-4 py-2">
     <!-- Header -->
     <div class="mb-4">
       <h2 class="fw-bold m-0" style="color: #ffffff;">
         <span style="border-left: 4px solid var(--color-verde-selva); padding-left: 12px;">
-          Mi Perfil
+          Mi Perfil Personal
         </span>
       </h2>
       <p class="text-muted small m-0 mt-1 ms-3">
-        Administra tus datos personales y seguridad de tu cuenta
+        Gestión de datos del trabajador y actualización de contraseña de acceso
       </p>
     </div>
 
-    <!-- Alert Feedback -->
+    <!-- Feedback Alerts -->
     <div v-if="alertMessage" class="alert alert-dismissible fade show" :class="alertSuccess ? 'alert-success' : 'alert-danger'" role="alert">
       {{ alertMessage }}
       <button type="button" class="btn-close" @click="alertMessage = ''"></button>
     </div>
 
     <div class="row g-4">
-      <!-- Personal Information Card -->
+      <!-- Profile Information Card -->
       <div class="col-md-6">
-        <div class="admin-card h-100 shadow-sm">
+        <div class="admin-card h-100">
           <div class="card-header fw-bold" style="color: var(--color-cafe-tostado);">
             Información Personal
           </div>
@@ -29,24 +29,24 @@
             <form @submit.prevent="updateProfile">
               <div class="mb-3">
                 <label class="form-label fw-bold">Nombre Completo</label>
-                <input type="text" class="form-control form-modern" v-model="profile.fullName" required placeholder="Tu nombre completo">
+                <input type="text" class="form-control form-modern" v-model="profile.fullName" required>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">Correo Electrónico</label>
                 <input type="email" class="form-control form-modern" v-model="profile.email" disabled>
-                <small class="text-muted">El correo electrónico está vinculado a tu cuenta.</small>
+                <small class="text-muted">El correo electrónico no puede ser modificado.</small>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">Teléfono de Contacto</label>
-                <input type="text" class="form-control form-modern" v-model="profile.phone" placeholder="Ej: (+591) 70000000">
+                <input type="text" class="form-control form-modern" v-model="profile.phone" placeholder="Ej: +591 70000000">
               </div>
               <div class="mb-3">
-                <label class="form-label fw-bold">Tipo de Cuenta (Rol)</label>
-                <input type="text" class="form-control form-modern fw-bold text-uppercase" :value="formatRole(profile.role)" disabled>
+                <label class="form-label fw-bold">Rol Asignado</label>
+                <input type="text" class="form-control form-modern text-capitalize" value="Trabajador (Worker)" disabled>
               </div>
-              <button type="submit" class="btn btn-primary w-100 shadow-sm" :disabled="loading">
+              <button type="submit" class="btn btn-primary w-100" :disabled="loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status"></span>
-                <span>Actualizar Perfil</span>
+                <span>Guardar Cambios de Perfil</span>
               </button>
             </form>
           </div>
@@ -55,7 +55,7 @@
 
       <!-- Change Password Card -->
       <div class="col-md-6">
-        <div class="admin-card h-100 shadow-sm">
+        <div class="admin-card h-100">
           <div class="card-header fw-bold" style="color: var(--color-cafe-tostado);">
             Cambiar Contraseña
           </div>
@@ -73,9 +73,9 @@
                 <label class="form-label fw-bold">Confirmar Nueva Contraseña</label>
                 <input type="password" class="form-control form-modern" v-model="passwordData.confirmPassword" required minlength="6">
               </div>
-              <button type="submit" class="btn btn-primary w-100 shadow-sm" :disabled="loadingPass">
+              <button type="submit" class="btn btn-primary w-100" :disabled="loadingPass">
                 <span v-if="loadingPass" class="spinner-border spinner-border-sm me-1" role="status"></span>
-                <span>Cambiar Contraseña</span>
+                <span>Actualizar Contraseña</span>
               </button>
             </form>
           </div>
@@ -86,9 +86,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import api from '../services/api'
+import { reactive, ref, onMounted } from 'vue'
+import { useAuthStore } from '../../stores/auth'
+import api from '../../services/api'
 
 const authStore = useAuthStore()
 const loading = ref(false)
@@ -123,16 +123,7 @@ const showAlert = (msg, isSuccess = true) => {
   alertSuccess.value = isSuccess
 }
 
-const formatRole = (role) => {
-  if (!role) return 'CLIENTE'
-  const r = role.toLowerCase()
-  if (r === 'admin' || r === 'administrador') return 'ADMINISTRADOR'
-  if (r === 'worker' || r === 'trabajador') return 'TRABAJADOR'
-  return 'CLIENTE'
-}
-
 const updateProfile = async () => {
-  if (!authStore.user || !authStore.user.id) return
   loading.value = true
   alertMessage.value = ''
   try {
@@ -147,8 +138,8 @@ const updateProfile = async () => {
     authStore.user.phone = profile.phone
     localStorage.setItem('user', JSON.stringify(authStore.user))
     showAlert('Perfil actualizado exitosamente', true)
-  } catch (error) {
-    const msg = error.response?.data?.message || 'Error al actualizar perfil'
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Error al actualizar el perfil'
     showAlert(msg, false)
   } finally {
     loading.value = false
@@ -175,8 +166,8 @@ const changePassword = async () => {
     passwordData.currentPassword = ''
     passwordData.newPassword = ''
     passwordData.confirmPassword = ''
-  } catch (error) {
-    const msg = error.response?.data?.message || 'Error al cambiar contraseña'
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Error al cambiar la contraseña'
     showAlert(msg, false)
   } finally {
     loadingPass.value = false

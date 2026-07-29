@@ -44,7 +44,7 @@ namespace CafeteriaApi.Controllers
             return Ok(products);
         }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,worker")]
         [HttpGet("admin/all")]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProductsForAdmin()
         {

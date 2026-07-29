@@ -1,71 +1,179 @@
 <template>
-  <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold" style="color: var(--color-cafe);">
-        <span style="border-left: 4px solid var(--color-cafe); padding-left: 12px;">Gestion de Pedidos</span>
-      </h2>
+  <div class="container-fluid px-3 px-lg-4 py-3">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <div>
+        <h2 class="fw-bold m-0" style="color: #ffffff;">
+          <span style="border-left: 4px solid var(--color-verde-selva); padding-left: 12px;">
+            Monitor General de Pedidos
+          </span>
+        </h2>
+        <p style="color:white">
+          Supervisión global en tiempo real del flujo de pedidos de la cafetería
+        </p>
+      </div>
+      <div>
+        <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" @click="adminStore.fetchOrders()" :disabled="adminStore.loading">
+          <span v-if="adminStore.loading" class="spinner-border spinner-border-sm me-1" role="status"></span>
+          <span>Actualizar Lista</span>
+        </button>
+      </div>
     </div>
 
-    <div class="row mb-3">
-      <div class="col-md-3">
-        <button class="btn btn-outline-primary w-100" @click="filter = 'all'">Todos ({{ adminStore.orders.length }})</button>
-      </div>
-      <div class="col-md-3">
-        <button class="btn btn-outline-warning w-100" @click="filter = 'pending'">Pendientes ({{ pendingOrders.length }})</button>
-      </div>
-      <div class="col-md-3">
-        <button class="btn btn-outline-success w-100" @click="filter = 'paid'">Pagados ({{ paidOrders.length }})</button>
-      </div>
-      <div class="col-md-3">
-        <button class="btn btn-outline-info w-100" @click="filter = 'delivered'">Entregados ({{ deliveredOrders.length }})</button>
+    <!-- Role Responsibilities Notice Banner -->
+    <div class="alert alert-info d-flex align-items-center gap-3 mb-4 shadow-sm">
+      <i class="bi bi-shield-lock-fill fs-3 text-info"></i>
+      <div>
+        <h6 class="fw-bold m-0 text-dark">Supervisión Operativa del Administrador</h6>
+        <small class="text-muted">
+          Los cambios de estado operacional (Confirmación de Pago, En Preparación, Listo para Recoger y Entregado) son procesados 
+          <strong>exclusivamente por los Trabajadores</strong> desde el Panel de Trabajador.
+        </small>
       </div>
     </div>
 
+    <!-- Filters -->
+    <div class="row g-2 mb-4">
+      <div class="col-md-3">
+        <button class="btn w-100 btn-sm text-nowrap" :class="filter === 'all' ? 'btn-dark' : 'btn-outline-dark'" @click="filter = 'all'">
+          Todos los Pedidos ({{ adminStore.orders.length }})
+        </button>
+      </div>
+      <div class="col-md-3">
+        <button class="btn w-100 btn-sm text-nowrap" :class="filter === 'pending' ? 'btn-warning' : 'btn-outline-warning'" @click="filter = 'pending'">
+          Pendientes de Pago ({{ pendingOrders.length }})
+        </button>
+      </div>
+      <div class="col-md-3">
+        <button class="btn w-100 btn-sm text-nowrap" :class="filter === 'paid' ? 'btn-success' : 'btn-outline-success'" @click="filter = 'paid'">
+          Pagados / En Proceso ({{ paidOrders.length }})
+        </button>
+      </div>
+      <div class="col-md-3">
+        <button class="btn w-100 btn-sm text-nowrap" :class="filter === 'delivered' ? 'btn-info text-white' : 'btn-outline-info'" @click="filter = 'delivered'">
+          Entregados ({{ deliveredOrders.length }})
+        </button>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
     <div class="admin-card">
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-cafe">
+          <table class="table table-modern align-middle mb-0">
             <thead>
               <tr>
                 <th>Pedido</th>
                 <th>Cliente</th>
-                <th>Total</th>
-                <th>Pago</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
+                <th>Método</th>
+                <th>Estado Pago</th>
+                <th>Estado Orden</th>
+                <th class="text-end">Total</th>
+                <th>Fecha y Hora</th>
+                <th class="text-center">Acción</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="order in filteredOrders" :key="order.id">
-                <td>#{{ order.orderNumber }}</td>
-                <td>{{ order.user?.fullName || 'N/A' }}</td>
-                <td class="text-success fw-bold">${{ order.total.toFixed(2) }}</td>
+                <td class="fw-bold text-dark">#{{ order.orderNumber }}</td>
                 <td>
-                  <span class="badge" :class="order.paymentStatus === 'paid' ? 'badge-verde' : 'badge-amarillo'">
+                  <div class="fw-semibold">{{ order.user?.fullName || 'Cliente #' + order.userId }}</div>
+                  <small class="text-muted" v-if="order.user?.email">{{ order.user.email }}</small>
+                </td>
+        <td class="text-uppercase small font-monospace fw-bold">{{ formatPaymentMethod(order.paymentMethod) }}</td>
+                <td>
+                  <span class="badge badge-modern" :class="order.paymentStatus === 'paid' ? 'badge-verde' : 'badge-amarillo'">
                     {{ order.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente' }}
                   </span>
                 </td>
                 <td>
-                  <span class="badge" :class="getOrderStatusClass(order.orderStatus)">
+                  <span class="badge badge-modern" :class="getOrderStatusBadgeClass(order.orderStatus)">
                     {{ getOrderStatusText(order.orderStatus) }}
                   </span>
                 </td>
-                <td>{{ new Date(order.createdAt).toLocaleDateString() }}</td>
-                <td>
-                  <button v-if="order.paymentStatus === 'pending'" class="btn btn-sm btn-verde me-1" @click="markAsPaid(order.id)">
-                    Pagar
+                <td class="text-end fw-bold text-success">
+                  Bs. {{ Number(order.total).toFixed(2) }}
+                </td>
+                <td class="small text-muted">{{ formatDate(order.createdAt) }}</td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-outline-primary btn-action-icon" @click="viewDetails(order)" title="Ver Detalle del Pedido">
+                    <i class="bi bi-eye-fill"></i>
                   </button>
-                  <button v-if="order.paymentStatus === 'paid' && order.orderStatus === 'preparing'" class="btn btn-sm btn-primary me-1" @click="updateStatus(order.id, 'ready')">
-                    Listo
-                  </button>
-                  <button v-if="order.paymentStatus === 'paid' && order.orderStatus === 'ready'" class="btn btn-sm btn-info" @click="updateStatus(order.id, 'delivered')">
-                    Entregar
-                  </button>
+                </td>
+              </tr>
+              <tr v-if="filteredOrders.length === 0">
+                <td colspan="8" class="text-center py-4 text-muted">
+                  No hay pedidos registrados en esta categoría.
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="adminOrderDetailModal" tabindex="-1" aria-hidden="true" ref="modalRef">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-modern" v-if="selectedOrder">
+          <div class="modal-header">
+            <h5 class="modal-title text-white">Monitoreo de Pedido #{{ selectedOrder.orderNumber }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <div class="card border-0 bg-light p-3">
+                  <h6 class="fw-bold text-dark mb-2">Datos del Cliente</h6>
+                  <div><strong>Nombre:</strong> {{ selectedOrder.user?.fullName || 'N/A' }}</div>
+                  <div><strong>Email:</strong> {{ selectedOrder.user?.email || 'N/A' }}</div>
+                  <div><strong>Teléfono:</strong> {{ selectedOrder.user?.phone || 'Sin registrar' }}</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card border-0 bg-light p-3">
+                  <h6 class="fw-bold text-dark mb-2">Estado del Pedido</h6>
+                  <div><strong>Pago:</strong> {{ selectedOrder.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente' }}</div>
+                  <div><strong>Preparación:</strong> {{ getOrderStatusText(selectedOrder.orderStatus) }}</div>
+                  <div><strong>Método de Pago:</strong> {{ formatPaymentMethod(selectedOrder.paymentMethod) }}</div>
+                  <div><strong>Fecha:</strong> {{ formatDate(selectedOrder.createdAt) }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="selectedOrder.notes" class="alert alert-info py-2 mb-3">
+              <strong>Notas:</strong> {{ selectedOrder.notes }}
+            </div>
+
+            <h6 class="fw-bold text-dark mb-2">Ítems del Pedido</h6>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Producto</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-end">Precio Unitario</th>
+                    <th class="text-end">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in selectedOrder.orderDetails" :key="item.id">
+                    <td>{{ item.product?.name || 'Producto #' + item.productId }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-end">Bs. {{ Number(item.unitPrice).toFixed(2) }}</td>
+                    <td class="text-end fw-bold">Bs. {{ Number(item.subtotal).toFixed(2) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="d-flex flex-column align-items-end pe-2">
+              <div class="fs-4 text-success mt-1">Total Pedido: <strong class="ms-2">Bs. {{ Number(selectedOrder.total).toFixed(2) }}</strong></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -78,6 +186,16 @@ import { useAdminStore } from '../../stores/admin'
 
 const adminStore = useAdminStore()
 const filter = ref('all')
+const selectedOrder = ref(null)
+const modalRef = ref(null)
+let modalInstance = null
+
+onMounted(async () => {
+  await adminStore.fetchOrders()
+  if (window.bootstrap && modalRef.value) {
+    modalInstance = new window.bootstrap.Modal(modalRef.value)
+  }
+})
 
 const pendingOrders = computed(() => adminStore.orders.filter(o => o.paymentStatus === 'pending'))
 const paidOrders = computed(() => adminStore.orders.filter(o => o.paymentStatus === 'paid'))
@@ -90,41 +208,54 @@ const filteredOrders = computed(() => {
   return adminStore.orders
 })
 
-onMounted(async () => {
-  await adminStore.fetchOrders()
-})
-
-const getOrderStatusClass = (status) => {
-  const classes = {
-    pending: 'bg-secondary',
-    preparing: 'bg-info',
-    ready: 'bg-primary',
-    delivered: 'bg-success'
+const getOrderStatusBadgeClass = (status) => {
+  const map = {
+    pending: 'badge-amarillo',
+    preparing: 'badge-azul',
+    ready: 'badge-cafe',
+    delivered: 'badge-verde'
   }
-  return classes[status] || 'bg-secondary'
+  return map[status] || 'badge-gris'
 }
 
 const getOrderStatusText = (status) => {
-  const texts = {
-    pending: 'Pendiente',
-    preparing: 'En Preparacion',
+  const map = {
+    pending: 'Pendiente de Preparación',
+    preparing: 'En Preparación',
     ready: 'Listo para Recoger',
     delivered: 'Entregado'
   }
-  return texts[status] || status
+  return map[status] || status
 }
 
-const markAsPaid = async (orderId) => {
-  const result = await adminStore.updateOrderPaymentStatus(orderId, 'paid')
-  if (result.success) {
-    await adminStore.fetchOrders()
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'N/A'
+  const d = new Date(dateStr)
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const formatPaymentMethod = (pm) => {
+  if (!pm) return 'EFECTIVO'
+  const lower = pm.toLowerCase()
+  if (lower === 'cash' || lower === 'efectivo') return 'EFECTIVO'
+  if (lower === 'qr') return 'QR'
+  return pm.toUpperCase()
+}
+
+const viewDetails = (order) => {
+  selectedOrder.value = order
+  if (!modalInstance && window.bootstrap && modalRef.value) {
+    modalInstance = new window.bootstrap.Modal(modalRef.value)
   }
-}
-
-const updateStatus = async (orderId, status) => {
-  const result = await adminStore.updateOrderStatus(orderId, status)
-  if (result.success) {
-    await adminStore.fetchOrders()
+  if (modalInstance) {
+    modalInstance.show()
   }
 }
 </script>
+
+<style scoped>
+.badge-azul {
+  background-color: var(--color-terracota, #c85a32);
+  color: #fff;
+}
+</style>

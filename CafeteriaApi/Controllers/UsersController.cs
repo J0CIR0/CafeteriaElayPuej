@@ -10,7 +10,7 @@ namespace CafeteriaApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,worker")]
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -18,6 +18,18 @@ namespace CafeteriaApi.Controllers
         public UsersController(ApplicationDbContext context)
         {
             _context = context;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            return userIdClaim != null && int.TryParse(userIdClaim.Value, out int id) ? id : 0;
+        }
+
+        private bool IsAdmin()
+        {
+            var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+            return roleClaim == "admin";
         }
 
         [HttpGet]
@@ -66,6 +78,7 @@ namespace CafeteriaApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> CreateUser([FromBody] AdminUserDto adminUserDto)
         {
             if (!ModelState.IsValid)
@@ -120,6 +133,12 @@ namespace CafeteriaApi.Controllers
             if (id != dto.Id)
                 return BadRequest(new { message = "El ID del usuario no coincide" });
 
+            int currentUserId = GetCurrentUserId();
+            bool isAdmin = IsAdmin();
+
+            if (!isAdmin && currentUserId != id)
+                return Forbid();
+
             var existingUser = await _context.Users.FindAsync(id);
             if (existingUser == null)
                 return NotFound(new { message = "Usuario no encontrado" });
@@ -130,21 +149,26 @@ namespace CafeteriaApi.Controllers
             if (duplicateEmail)
                 return BadRequest(new { message = "El email ya está registrado por otro usuario" });
 
-            var normalizedRole = (dto.Role ?? "").ToLower();
-            if (normalizedRole == "mesero")
-                normalizedRole = "worker";
-            else if (normalizedRole == "cliente")
-                normalizedRole = "customer";
-            else if (normalizedRole != "admin" && normalizedRole != "worker" && normalizedRole != "customer")
-                normalizedRole = "customer";
-
             existingUser.Email = dto.Email;
             existingUser.FullName = dto.FullName;
             existingUser.Phone = dto.Phone;
-            existingUser.Role = normalizedRole;
-            existingUser.IsActive = dto.IsActive;
-            existingUser.IsEmailVerified = dto.IsEmailVerified;
-            existingUser.EmailVerifiedAt = dto.IsEmailVerified ? (existingUser.EmailVerifiedAt ?? DateTime.UtcNow) : null;
+            
+            if (isAdmin)
+            {
+                var normalizedRole = (dto.Role ?? "").ToLower();
+                if (normalizedRole == "mesero")
+                    normalizedRole = "worker";
+                else if (normalizedRole == "cliente")
+                    normalizedRole = "customer";
+                else if (normalizedRole != "admin" && normalizedRole != "worker" && normalizedRole != "customer")
+                    normalizedRole = "customer";
+
+                existingUser.Role = normalizedRole;
+                existingUser.IsActive = dto.IsActive;
+                existingUser.IsEmailVerified = dto.IsEmailVerified;
+                existingUser.EmailVerifiedAt = dto.IsEmailVerified ? (existingUser.EmailVerifiedAt ?? DateTime.UtcNow) : null;
+            }
+
             if (!string.IsNullOrWhiteSpace(dto.Password))
             {
                 existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
@@ -157,6 +181,7 @@ namespace CafeteriaApi.Controllers
         }
 
         [HttpPatch("{id}/status")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> ToggleUserStatus(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -184,6 +209,7 @@ namespace CafeteriaApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _context.Users

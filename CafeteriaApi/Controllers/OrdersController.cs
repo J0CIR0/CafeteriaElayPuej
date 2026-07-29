@@ -107,103 +107,113 @@ namespace CafeteriaApi.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userId = GetCurrentUserId();
-
-            var orderNumber = GenerateOrderNumber();
-
-            decimal subtotal = 0;
-            var orderDetails = new List<OrderDetail>();
-
-            foreach (var item in createOrderDto.OrderItems)
+            try
             {
-                var product = await _context.Products.FindAsync(item.ProductId);
-                if (product == null)
-                    return BadRequest(new { message = $"Producto con ID {item.ProductId} no encontrado" });
+                var userId = GetCurrentUserId();
+                var orderNumber = GenerateOrderNumber();
 
-                if (!product.IsAvailable)
-                    return BadRequest(new { message = $"Producto {product.Name} no está disponible" });
+                var paymentMethod = (createOrderDto.PaymentMethod ?? "qr").ToLower().Trim();
+                if (paymentMethod == "efectivo") paymentMethod = "cash";
+                if (paymentMethod != "qr" && paymentMethod != "cash" && paymentMethod != "card") paymentMethod = "qr";
 
-                if (product.Stock < item.Quantity)
-                    return BadRequest(new { message = $"Stock insuficiente para {product.Name}" });
+                decimal subtotal = 0;
+                var orderDetails = new List<OrderDetail>();
 
-                decimal itemSubtotal = product.Price * item.Quantity;
-                subtotal += itemSubtotal;
-
-                orderDetails.Add(new OrderDetail
+                foreach (var item in createOrderDto.OrderItems)
                 {
-                    ProductId = product.Id,
-                    Quantity = item.Quantity,
-                    UnitPrice = product.Price,
-                    Subtotal = itemSubtotal
-                });
+                    var product = await _context.Products.FindAsync(item.ProductId);
+                    if (product == null)
+                        return BadRequest(new { message = $"Producto con ID {item.ProductId} no encontrado" });
 
-                product.Stock -= item.Quantity;
-                product.UpdatedAt = DateTime.UtcNow;
-            }
+                    if (!product.IsAvailable)
+                        return BadRequest(new { message = $"Producto '{product.Name}' no está disponible" });
 
-            decimal tax = subtotal * 0.13m;
-            decimal total = subtotal + tax;
+                    if (product.Stock < item.Quantity)
+                        return BadRequest(new { message = $"Stock insuficiente para '{product.Name}' (disponible: {product.Stock})" });
 
-            var order = new Order
-            {
-                UserId = userId,
-                OrderNumber = orderNumber,
-                Subtotal = subtotal,
-                Tax = tax,
-                Total = total,
-                PaymentMethod = createOrderDto.PaymentMethod,
-                PaymentStatus = "pending",
-                OrderStatus = "pending",
-                PickupTime = createOrderDto.PickupTime,
-                Notes = createOrderDto.Notes,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                OrderDetails = orderDetails
-            };
+                    decimal itemSubtotal = product.Price * item.Quantity;
+                    subtotal += itemSubtotal;
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            foreach (var item in createOrderDto.OrderItems)
-            {
-                await RecordInventoryMovement(item.ProductId, item.Quantity, "exit", $"Pedido {orderNumber}", userId);
-
-                var recipeItems = await _context.ProductIngredients
-                    .Include(pi => pi.Ingredient)
-                    .Include(pi => pi.Product)
-                    .Where(pi => pi.ProductId == item.ProductId)
-                    .ToListAsync();
-
-                foreach (var pi in recipeItems)
-                {
-                    if (pi.Ingredient != null && pi.Ingredient.IsActive)
+                    orderDetails.Add(new OrderDetail
                     {
-                        decimal qtyDeducted = pi.QuantityRequired * item.Quantity;
-                        pi.Ingredient.StockQuantity -= qtyDeducted;
-                        if (pi.Ingredient.StockQuantity < 0)
-                            pi.Ingredient.StockQuantity = 0;
-                        pi.Ingredient.UpdatedAt = DateTime.UtcNow;
+                        ProductId = product.Id,
+                        Quantity = item.Quantity,
+                        UnitPrice = product.Price,
+                        Subtotal = itemSubtotal
+                    });
 
-                        _context.IngredientMovements.Add(new IngredientMovement
+                    product.Stock -= item.Quantity;
+                    product.UpdatedAt = DateTime.UtcNow;
+                }
+
+                decimal tax = 0;
+                decimal total = subtotal;
+
+                var order = new Order
+                {
+                    UserId = userId,
+                    OrderNumber = orderNumber,
+                    Subtotal = subtotal,
+                    Tax = tax,
+                    Total = total,
+                    PaymentMethod = paymentMethod,
+                    PaymentStatus = "pending",
+                    OrderStatus = "pending",
+                    PickupTime = createOrderDto.PickupTime,
+                    Notes = createOrderDto.Notes,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    OrderDetails = orderDetails
+                };
+
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+                foreach (var item in createOrderDto.OrderItems)
+                {
+                    await RecordInventoryMovement(item.ProductId, item.Quantity, "exit", $"Pedido {orderNumber}", userId);
+
+                    var recipeItems = await _context.ProductIngredients
+                        .Include(pi => pi.Ingredient)
+                        .Include(pi => pi.Product)
+                        .Where(pi => pi.ProductId == item.ProductId)
+                        .ToListAsync();
+
+                    foreach (var pi in recipeItems)
+                    {
+                        if (pi.Ingredient != null && pi.Ingredient.IsActive)
                         {
-                            IngredientId = pi.IngredientId,
-                            MovementType = "sale_deduction",
-                            Quantity = qtyDeducted,
-                            UnitCostAtTime = pi.Ingredient.UnitCost,
-                            TotalCostLoss = 0,
-                            Reason = $"Deducción por venta de {item.Quantity}x {pi.Product?.Name ?? "Producto"} (Pedido #{orderNumber})",
-                            UserId = userId,
-                            CreatedAt = DateTime.UtcNow
-                        });
+                            decimal qtyDeducted = pi.QuantityRequired * item.Quantity;
+                            pi.Ingredient.StockQuantity -= qtyDeducted;
+                            if (pi.Ingredient.StockQuantity < 0)
+                                pi.Ingredient.StockQuantity = 0;
+                            pi.Ingredient.UpdatedAt = DateTime.UtcNow;
+
+                            _context.IngredientMovements.Add(new IngredientMovement
+                            {
+                                IngredientId = pi.IngredientId,
+                                MovementType = "sale_deduction",
+                                Quantity = qtyDeducted,
+                                UnitCostAtTime = pi.Ingredient.UnitCost,
+                                TotalCostLoss = 0,
+                                Reason = $"Deducción por venta de {item.Quantity}x {pi.Product?.Name ?? "Producto"} (Pedido #{orderNumber})",
+                                UserId = userId,
+                                CreatedAt = DateTime.UtcNow
+                            });
+                        }
                     }
                 }
-            }
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+                return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"Error al procesar el pedido: {ex.Message}" });
+            }
         }
 
-        [Authorize(Roles = "admin,worker")]
+        [Authorize(Roles = "worker")]
         [HttpPatch("{id}/payment-status")]
         public async Task<IActionResult> UpdatePaymentStatus(int id, [FromBody] UpdatePaymentStatusDto updateDto)
         {
@@ -243,7 +253,7 @@ namespace CafeteriaApi.Controllers
             return NoContent();
         }
 
-        [Authorize(Roles = "admin,worker")]
+        [Authorize(Roles = "worker")]
         [HttpPatch("{id}/order-status")]
         public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDto updateDto)
         {
@@ -303,11 +313,11 @@ namespace CafeteriaApi.Controllers
 
         private int GetCurrentUserId()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub") ?? User.FindFirst("nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
                 throw new UnauthorizedAccessException("Usuario no autenticado");
 
-            return int.Parse(userIdClaim.Value);
+            return userId;
         }
 
         private async Task RecordInventoryMovement(int productId, int quantity, string movementType, string reason, int userId)

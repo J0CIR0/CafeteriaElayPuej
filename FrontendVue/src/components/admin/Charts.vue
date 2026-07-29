@@ -2,7 +2,7 @@
   <div class="row g-4">
     <div class="col-md-6">
       <div class="admin-card">
-        <div class="card-header">Pedidos por Estado</div>
+        <div class="card-header fw-bold" style="color: var(--color-cafe-tostado);">Pedidos por Estado</div>
         <div class="card-body">
           <div v-if="orders.length === 0" class="text-center text-muted py-4">
             No hay datos disponibles
@@ -23,7 +23,7 @@
     </div>
     <div class="col-md-6">
       <div class="admin-card">
-        <div class="card-header">Ingresos por Periodo</div>
+        <div class="card-header fw-bold" style="color: var(--color-cafe-tostado);">Ingresos por Periodo</div>
         <div class="card-body">
           <div v-if="!hasRevenueData" class="text-center text-muted py-4">
             No hay datos de ingresos
@@ -31,15 +31,15 @@
           <div v-else>
             <div class="d-flex justify-content-around">
               <div class="text-center">
-                <div class="stat-number" style="font-size: 1.1rem;">${{ revenueToday.toFixed(2) }}</div>
+                <div class="stat-number" style="font-size: 1.1rem;">Bs. {{ revenueToday.toFixed(2) }}</div>
                 <div class="stat-label">Hoy</div>
               </div>
               <div class="text-center">
-                <div class="stat-number" style="font-size: 1.1rem;">${{ revenueWeek.toFixed(2) }}</div>
+                <div class="stat-number" style="font-size: 1.1rem;">Bs. {{ revenueWeek.toFixed(2) }}</div>
                 <div class="stat-label">Esta Semana</div>
               </div>
               <div class="text-center">
-                <div class="stat-number" style="font-size: 1.1rem;">${{ revenueMonth.toFixed(2) }}</div>
+                <div class="stat-number" style="font-size: 1.1rem;">Bs. {{ revenueMonth.toFixed(2) }}</div>
                 <div class="stat-label">Este Mes</div>
               </div>
             </div>
@@ -63,7 +63,7 @@ const props = defineProps({
 const orderStatuses = computed(() => {
   const statusMap = {
     pending: { label: 'Pendientes', color: 'bg-secondary' },
-    preparing: { label: 'En Preparacion', color: 'bg-info' },
+    preparing: { label: 'En Preparación', color: 'bg-info' },
     ready: { label: 'Listos para Recoger', color: 'bg-primary' },
     delivered: { label: 'Entregados', color: 'bg-success' }
   }

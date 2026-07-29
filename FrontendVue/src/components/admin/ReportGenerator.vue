@@ -1,21 +1,21 @@
 <template>
   <div class="admin-card">
-    <div class="card-header">Generar Reportes</div>
+    <div class="card-header fw-bold" style="color: var(--color-cafe-tostado);">Generar Reportes Imprimibles</div>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-4">
-          <button class="btn btn-cafe w-100" @click="generateReport('products')">
-            Productos
+          <button class="btn btn-outline-dark w-100" @click="generateReport('products')">
+            <i class="bi bi-box-seam me-1"></i>Productos
           </button>
         </div>
         <div class="col-md-4">
-          <button class="btn btn-verde w-100" @click="generateReport('orders')">
-            Pedidos
+          <button class="btn btn-outline-dark w-100" @click="generateReport('orders')">
+            <i class="bi bi-receipt me-1"></i>Pedidos
           </button>
         </div>
         <div class="col-md-4">
           <button class="btn btn-primary w-100" @click="generateReport('inventory')">
-            Inventario
+            <i class="bi bi-boxes me-1"></i>Inventario
           </button>
         </div>
       </div>
@@ -60,7 +60,7 @@ const generateHTML = (type, data) => {
         <td>${p.id}</td>
         <td>${p.name}</td>
         <td>${p.categoryName || 'Sin categoria'}</td>
-        <td>$${p.price.toFixed(2)}</td>
+        <td>Bs. ${p.price.toFixed(2)}</td>
         <td>${p.stock}</td>
         <td>${p.isAvailable ? 'Disponible' : 'No Disponible'}</td>
       </tr>
@@ -70,7 +70,7 @@ const generateHTML = (type, data) => {
       <tr>
         <td>${o.orderNumber}</td>
         <td>${o.user?.fullName || 'N/A'}</td>
-        <td>$${o.total.toFixed(2)}</td>
+        <td>Bs. ${o.total.toFixed(2)}</td>
         <td>${o.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente'}</td>
         <td>${o.orderStatus}</td>
         <td>${new Date(o.createdAt).toLocaleDateString()}</td>
@@ -94,14 +94,14 @@ const generateHTML = (type, data) => {
     <head>
       <title>${title}</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 40px; }
-        .header { text-align: center; border-bottom: 3px solid #6F4E37; padding-bottom: 20px; margin-bottom: 20px; }
-        .header h1 { color: #6F4E37; margin: 0; }
-        .header p { color: #888; }
+        body { font-family: system-ui, sans-serif; padding: 40px; }
+        .header { text-align: center; border-bottom: 3px solid #3e2723; padding-bottom: 20px; margin-bottom: 20px; }
+        .header h1 { color: #3e2723; margin: 0; }
+        .header p { color: #666; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #6F4E37; color: white; padding: 10px; text-align: left; }
+        th { background: #3e2723; color: white; padding: 10px; text-align: left; }
         td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
-        tr:nth-child(even) { background: #f9f6f2; }
+        tr:nth-child(even) { background: #faf6f0; }
         .footer { text-align: center; margin-top: 30px; color: #888; font-size: 12px; border-top: 1px solid #ddd; padding-top: 20px; }
       </style>
     </head>
