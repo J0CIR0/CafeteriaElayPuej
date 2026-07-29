@@ -25,7 +25,7 @@
       <router-link to="/admin/users" class="list-group-item list-group-item-action" active-class="active">
         Usuarios
       </router-link>
-      <router-link to="/admin/reports" style="color:white" active-class="active">
+      <router-link to="/admin/reports" class="list-group-item list-group-item-action" active-class="active">
         Reportes
       </router-link>
     </div>
