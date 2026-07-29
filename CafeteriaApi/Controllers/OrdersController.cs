@@ -78,7 +78,20 @@ namespace CafeteriaApi.Controllers
 
             return Ok(orders);
         }
+        [HttpGet("pending")] //cambio
+        [Authorize(Roles = "admin,worker")]
+        public async Task<ActionResult<IEnumerable<Order>>> GetPendingOrders()
+        {
+            var orders = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .Where(o => o.OrderStatus == "pending")
+                .OrderBy(o => o.CreatedAt)
+                .ToListAsync();
 
+            return Ok(orders);
+        }
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrder(int id)
         {

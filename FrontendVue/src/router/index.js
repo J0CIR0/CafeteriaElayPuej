@@ -106,7 +106,36 @@ const routes = [
     name: 'AdminReports',
     component: () => import('../views/admin/AdminReportsView.vue'),
     meta: { requiresAdmin: true }
-  }
+    },
+    //rutas cliente
+  {
+    path: '/menu',
+    name: 'ClienteMenu',
+    component: () => import('../views/cliente/ClienteMenuView.vue')
+  },
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: () => import('../views/cliente/ClienteCarritoView.vue')
+  },
+  {
+    path: '/orders',
+    name: 'Orders',
+    component: () => import('../views/cliente/ClientePedidosView.vue')
+  },
+  // RUTAS TRABAJADOR
+  {
+    path: '/trabajador/pedidos',
+    name: 'TrabajadorPedidos',
+    component: () => import('../views/trabajador/TrabajadorPedidosView.vue'),
+    meta: { requiresWorker: true } 
+  },
+  {
+    path: '/trabajador/inventario',
+    name: 'TrabajadorInventario',
+    component: () => import('../views/trabajador/TrabajadorInventarioView.vue'),
+    meta: { requiresWorker: true }
+  },
 ]
 
 const router = createRouter({
@@ -118,7 +147,11 @@ router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    next('/')
+      next('/')
+      //trabajador
+  } else if (to.meta.requiresWorker && !authStore.isWorker) {
+      next('/')
+
   } else if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
   } else if (to.path !== '/verify-email' && 
