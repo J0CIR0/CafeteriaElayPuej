@@ -17,10 +17,11 @@ services:
     networks:
       - cafeteria_net
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
+      test: ["CMD-SHELL", "healthcheck.sh --connect || mariadb-admin ping -h 127.0.0.1 --silent || exit 1"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   # Backend Service (ASP.NET Core Web API 8.0)
   backend:
