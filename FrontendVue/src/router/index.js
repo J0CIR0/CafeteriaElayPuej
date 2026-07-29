@@ -151,7 +151,6 @@ router.beforeEach(async (to, from, next) => {
       //trabajador
   } else if (to.meta.requiresWorker && !authStore.isWorker) {
       next('/')
-
   } else if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
   } else if (to.path !== '/verify-email' && 

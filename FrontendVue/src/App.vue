@@ -39,12 +39,19 @@
             </li>
           </ul>
           <ul class="navbar-nav">
-            <li class="nav-item" v-if="authStore.isAdmin">
-              <router-link class="nav-link" to="/profile">Mi Perfil</router-link>
-            </li>
-            <li class="nav-item">
-              <button class="btn btn-outline-light btn-sm ms-2" @click="logout">Cerrar Sesion</button>
-            </li>
+              <!-- BLOQUE DE TRABAJADOR (Insertado sin tocar nada más) -->
+              <li class="nav-item" v-if="authStore.isWorker && !authStore.isAdmin">
+                  <router-link class="nav-link" to="/trabajador/pedidos">Mis Pedidos</router-link>
+              </li>
+              <li class="nav-item" v-if="authStore.isWorker && !authStore.isAdmin">
+                  <router-link class="nav-link" to="/trabajador/inventario">Inventario</router-link>
+              </li>
+              <li class="nav-item" v-if="authStore.isAdmin || authStore.isWorker">
+                  <router-link class="nav-link" to="/profile">Mi Perfil</router-link>
+              </li>
+              <li class="nav-item">
+                  <button class="btn btn-outline-light btn-sm ms-2" @click="logout">Cerrar Sesion</button>
+              </li>
           </ul>
         </div>
       </div>
